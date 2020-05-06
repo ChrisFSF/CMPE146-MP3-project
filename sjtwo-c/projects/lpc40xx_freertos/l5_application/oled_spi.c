@@ -68,7 +68,7 @@ static char Bass_F[16] = "BF+------------ ";
 // For File scanning
 // Private functions
 
-TaskHandle_t task_handle;
+TaskHandle_t task_handle__player;
 
 typedef char song_memory_t[32]; // size of song name
 
@@ -472,7 +472,7 @@ void OLED_init() {
   Bass_Amplitude_index = 2;
   Bass_Frequency_index = 2;
 
-  task_handle = xTaskGetHandle("song_player");
+  task_handle__player = xTaskGetHandle("song_player");
   OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
   OLED_GUI_Home_Page(0, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
 
@@ -1191,7 +1191,7 @@ void OLED_GUI_NowPlay() {
             OLED_GUI_Send_New_Song();
             play_first_song = true;
           } else {
-            vTaskResume(task_handle);
+            vTaskResume(task_handle__player);
             OLED__DEBUG_PRINTF("Music Resume\n");
           }
 
@@ -1204,7 +1204,7 @@ void OLED_GUI_NowPlay() {
           OLED_GUI_Now_prograss_bar(Current_play_progress);
           OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
 
-          vTaskSuspend(task_handle);
+          vTaskSuspend(task_handle__player);
           OLED__DEBUG_PRINTF("Music Pause!\n");
         }
         break;
