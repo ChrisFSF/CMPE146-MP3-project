@@ -67,7 +67,21 @@ void mp3_initDecoder() {
 void dec_set_VOLUME(uint16_t value) { mp3_writeRequest(SCI_VOL, value); }
 
 
-/*  volume scale: 0-10
+/*  control both left and right channel using one value
+ *  volume scale: 0-10
+ *  volume encoding max: 0x00, min: 0xFF
+ *  put into scale, then 0->0xFF (inversed 0x00), 10->0x05 (0xFA)
+ */
+void dec_set_VOLUME_(int audio_volume){
+  uint16_t command = 0x0000;
+  uint8_t volume = (255 - (audio_volume * 25)) & 0xFF;
+  command |= volume << 8;
+  command |= volume << 0;
+  mp3_writeRequest(SCI_VOL, command);
+}
+
+/*  Controls left and right channel volume seperately 
+ *  volume scale: 0-10
  *  volume encoding max: 0x00, min: 0xFF
  *  put into scale, then 0->0xFF (inversed 0x00), 10->0x05 (0xFA)
  */
