@@ -973,6 +973,7 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
   default:
     break;
   }
+  dec_set_BASS_TREBLE(Treble_Amplitude_index, Treble_Frequency_index, Bass_Amplitude_index, Bass_Frequency_index);
 
   OLED_print_string(1, 0, 0, Treble_A, 16);
   OLED_print_string(2, 0, 0, Treble_F, 16);
@@ -1133,13 +1134,14 @@ void OLED_GUI_NowPlay() {
         if (Current_play_volumn > 10) {
           Current_play_volumn = 10;
         }
-        AUDIO_VOLUME -= vol_change_for_each_time;
-        OLED__DEBUG_PRINTF("Set vol: 0x%x\n", AUDIO_VOLUME);
-        dec_set_VOLUME(AUDIO_VOLUME);
+        // AUDIO_VOLUME -= vol_change_for_each_time;
+        // OLED__DEBUG_PRINTF("Set vol: 0x%x\n", AUDIO_VOLUME);
+        // dec_set_VOLUME(AUDIO_VOLUME);
 
-        if (AUDIO_VOLUME == 0x00) {
-          AUDIO_VOLUME += vol_change_for_each_time;
-        }
+        // if (AUDIO_VOLUME == 0x00) {
+        //   AUDIO_VOLUME += vol_change_for_each_time;
+        // }
+        dec_set_VOLUME_(Current_play_volumn);
 
         OLED_print_updated_volumn();
         OLED_GUI_NowPlay_Page(4);
@@ -1226,12 +1228,13 @@ void OLED_GUI_NowPlay() {
           Current_play_volumn = 0;
         }
 
-        AUDIO_VOLUME += vol_change_for_each_time;
-        if (AUDIO_VOLUME >= 0x6464) {
-          AUDIO_VOLUME = 0x6464;
-        }
-        OLED__DEBUG_PRINTF("Set vol: 0x%x\n", AUDIO_VOLUME);
-        dec_set_VOLUME(AUDIO_VOLUME);
+        // AUDIO_VOLUME += vol_change_for_each_time;
+        // if (AUDIO_VOLUME >= 0x6464) {
+        //   AUDIO_VOLUME = 0x6464;
+        // }
+        // OLED__DEBUG_PRINTF("Set vol: 0x%x\n", AUDIO_VOLUME);
+        // dec_set_VOLUME(AUDIO_VOLUME);
+        dec_set_VOLUME_(Current_play_volumn);
 
         OLED_print_updated_volumn();
         OLED_GUI_NowPlay_Page(4);
