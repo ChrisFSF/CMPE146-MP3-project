@@ -58,7 +58,7 @@ static int Bass_Amplitude_index = 2;
 static int Bass_Frequency_index = 2;
 
 static uint16_t vol_change_for_each_time = 0x0a0a;
-static uint16_t set_vol_val = 0; // range (0 - a0a0)
+static uint16_t AUDIO_VOLUME = 0; // range (0 - a0a0)
 
 static char Treble_A[16] = "TA------+------ ";
 static char Treble_F[16] = "TF+------------ ";
@@ -466,7 +466,7 @@ void OLED_init() {
   Bass_status = false;
   Treble_status = false;
   Option_arrow_index = 1;
-  set_vol_val = 0x3232;
+  AUDIO_VOLUME = 0x3232;
   Treble_Amplitude_index = 8;
   Treble_Frequency_index = 2;
   Bass_Amplitude_index = 2;
@@ -478,7 +478,7 @@ void OLED_init() {
 
   OLED_Send_Command(OLED_Display_ON_Normal_Mode);
 
-  mp3_set_VOL(set_vol_val);
+  dec_set_VOLUME(AUDIO_VOLUME);
   delay__ms(101);
   // wait for 100ms
   //   OLED__DEBUG_PRINTF("OLED Finished init\n");
@@ -1133,12 +1133,12 @@ void OLED_GUI_NowPlay() {
         if (Current_play_volumn > 10) {
           Current_play_volumn = 10;
         }
-        set_vol_val -= vol_change_for_each_time;
-        OLED__DEBUG_PRINTF("Set vol: 0x%x\n", set_vol_val);
-        mp3_set_VOL(set_vol_val);
+        AUDIO_VOLUME -= vol_change_for_each_time;
+        OLED__DEBUG_PRINTF("Set vol: 0x%x\n", AUDIO_VOLUME);
+        dec_set_VOLUME(AUDIO_VOLUME);
 
-        if (set_vol_val == 0x00) {
-          set_vol_val += vol_change_for_each_time;
+        if (AUDIO_VOLUME == 0x00) {
+          AUDIO_VOLUME += vol_change_for_each_time;
         }
 
         OLED_print_updated_volumn();
@@ -1226,12 +1226,12 @@ void OLED_GUI_NowPlay() {
           Current_play_volumn = 0;
         }
 
-        set_vol_val += vol_change_for_each_time;
-        if (set_vol_val >= 0x6464) {
-          set_vol_val = 0x6464;
+        AUDIO_VOLUME += vol_change_for_each_time;
+        if (AUDIO_VOLUME >= 0x6464) {
+          AUDIO_VOLUME = 0x6464;
         }
-        OLED__DEBUG_PRINTF("Set vol: 0x%x\n", set_vol_val);
-        mp3_set_VOL(set_vol_val);
+        OLED__DEBUG_PRINTF("Set vol: 0x%x\n", AUDIO_VOLUME);
+        dec_set_VOLUME(AUDIO_VOLUME);
 
         OLED_print_updated_volumn();
         OLED_GUI_NowPlay_Page(4);

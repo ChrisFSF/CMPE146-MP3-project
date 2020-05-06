@@ -64,7 +64,32 @@ void mp3_initDecoder() {
   // mp3_writeRequest(SCI_AIADDR, 0x4020);
 }
 
-void mp3_set_VOL(uint16_t value) { mp3_writeRequest(SCI_VOL, value); }
+void dec_set_VOLUME(uint16_t value) { mp3_writeRequest(SCI_VOL, value); }
+
+
+/*  volume scale: 0-10
+ *  volume encoding max: 0x00, min: 0xFF
+ *  put into scale, then 0->0xFF (inversed 0x00), 10->0x05 (0xFA)
+ */
+void dec_set_VOLUME_LR(int audio_volume_left, int audio_volume_right){
+  uint16_t command = 0x0000;
+  command |= ((255 - (audio_volume_left * 25)) & 0xFF) << 8;
+  command |= ((255 - (audio_volume_right * 25)) & 0xFF) << 0;
+  mp3_writeRequest(SCI_VOL, command);
+}
+
+
+void dec_set_BASS_TREBLE( int Treble_Amplitude_index, 
+                          int Treble_Frequency_index, 
+                          int Bass_Amplitude_index, 
+                          int Bass_Frequency_index){
+  uint16_t command = 0x0000;
+  command |= ((Treble_Amplitude_index - 2) & 0xF) << 12;
+  command |= ((Treble_Frequency_index - 2) & 0xF) << 8;
+  command |= ((Bass_Amplitude_index - 2) & 0xF) << 4;
+  command |= ((Bass_Frequency_index - 2) & 0xF) << 0;
+  mp3_writeRequest(SCI_BASS, command);
+}
 
 // decoder xcs  = P0.6
 void dec_cs(void) {

@@ -73,4 +73,6 @@ void mp3_pause();
 void mp3_resume();
 uint16_t mp3_SCI_read(uint8_t address);
 
-void mp3_set_VOL(uint16_t value);
+void dec_set_VOLUME(uint16_t value);
+void dec_set_VOLUME_LR(int audio_volume_left, int audio_volume_right);
+void dec_set_BASS_TREBLE(int Treble_Amplitude_index, int Treble_Frequency_index, int Bass_Amplitude_index, int Bass_Frequency_index);
