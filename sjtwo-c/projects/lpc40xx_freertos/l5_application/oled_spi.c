@@ -11,6 +11,7 @@
 #include <string.h>
 // #include <stddef.h>
 #include "FreeRTOS.h"
+#include "acceleration.h"
 #include "audio_decoder.h"
 #include "queue.h"
 #include <math.h>
@@ -40,7 +41,8 @@ static port_pin_s OLED_CS_pin = {0, 25};
 static uint8_t Button_Status = 0;
 static uint8_t OLED_GUI_Next_Pos = 0;
 static bool OLED_GUI_Play_Status = false;
-static bool OLED_GUI_BT_Status = false;
+static bool ACC_CTL_MODE = false;
+
 static char Current_play_song_name[16];
 static int Current_play_progress = 0;
 static int Current_play_volumn = 0;
@@ -349,7 +351,7 @@ void Read_SD_Music_file() {
                          G U I
 **********************************************************************/
 
-void OLED_GUI_Home_Page(uint8_t position, bool playing_status, bool bluetooth_status) {
+void OLED_GUI_Home_Page(uint8_t position, bool playing_status) {
   /**********************************
    *         __   __
    *       | 00 | 01 |
@@ -364,45 +366,41 @@ void OLED_GUI_Home_Page(uint8_t position, bool playing_status, bool bluetooth_st
   case 0:
     OLED_print_string(3, 0, 0, "|RecPlay|Folder ", 16);
     OLED_print_string(4, 0, 0, " ---*---        ", 16);
-    OLED_print_string(5, 0, 0, " BlueT   Sleep  ", 16);
+    OLED_print_string(5, 0, 0, " ACC_M   Sleep  ", 16);
     OLED_print_string(6, 0, 0, "                ", 16);
 
     break;
   case 1:
     OLED_print_string(3, 0, 0, " RecPlay|Folder|", 16);
     OLED_print_string(4, 0, 0, "         ---*---", 16);
-    OLED_print_string(5, 0, 0, " BlueT   Sleep  ", 16);
+    OLED_print_string(5, 0, 0, " ACC_M   Sleep  ", 16);
     OLED_print_string(6, 0, 0, "                ", 16);
     break;
 
   case 2:
     OLED_print_string(3, 0, 0, " RecPlay Folder ", 16);
     OLED_print_string(4, 0, 0, "                ", 16);
-    OLED_print_string(5, 0, 0, "|BlueT  |Sleep  ", 16);
+    OLED_print_string(5, 0, 0, "|ACC_M  |Sleep  ", 16);
     OLED_print_string(6, 0, 0, " ---*---        ", 16);
     break;
 
   case 3:
     OLED_print_string(3, 0, 0, " RecPlay Folder ", 16);
     OLED_print_string(4, 0, 0, "                ", 16);
-    OLED_print_string(5, 0, 0, " BlueT  |Sleep |", 16);
+    OLED_print_string(5, 0, 0, " ACC_M  |Sleep |", 16);
     OLED_print_string(6, 0, 0, "         ---*---", 16);
     break;
 
   default:
     OLED_print_string(3, 0, 0, "|RecPlay|Folder ", 16);
     OLED_print_string(4, 0, 0, " ---*---        ", 16);
-    OLED_print_string(5, 0, 0, " BlueT   Sleep  ", 16);
+    OLED_print_string(5, 0, 0, " ACC_M   Sleep  ", 16);
     OLED_print_string(6, 0, 0, "                ", 16);
     break;
   }
 
   if (playing_status) {
-    if (bluetooth_status) {
-      OLED_print_string(7, 0, 0, "Playing Form BT", 16);
-    } else {
-      OLED_print_string(7, 0, 0, "Playing Form SD", 16);
-    }
+    OLED_print_string(7, 0, 0, "Playing Now     ", 16);
     OLED_Horizontal_Scroll(7, 7, 7, OLED_Left_Horizontal_Scroll, 1);
   } else {
     OLED_print_string(7, 0, 0, "No Song to Play!", 16);
@@ -451,8 +449,8 @@ void OLED_init() {
   OLED_GUI_Next_Pos = 0;
   OLED_GUI_Play_Status = false;
   play_first_song = false;
+  ACC_CTL_MODE = false;
 
-  OLED_GUI_BT_Status = false;
   strncpy(Current_play_song_name, "                ", 15);
   Current_play_progress = 0;
   Current_play_volumn = 5;
@@ -471,7 +469,7 @@ void OLED_init() {
 
   task_handle__player = xTaskGetHandle("song_player");
   OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
-  OLED_GUI_Home_Page(0, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+  OLED_GUI_Home_Page(0, OLED_GUI_Play_Status);
 
   OLED_Send_Command(OLED_Display_ON_Normal_Mode);
 
@@ -487,6 +485,7 @@ uint8_t OLED_GUI_Read_Button_Status() {
    * read_button_option :    0x04     read_button_left:  0x08
    * read_button_play_pause: 0x10     read_button_right: 0x20
    * read_button_down:       0x40
+   *
    * **********************************************************/
 
   Button_Status = 0; // reset status value
@@ -530,6 +529,48 @@ uint8_t OLED_GUI_Read_Button_Status() {
     Button_Status = status_read_button_option;
     OLED__DEBUG_PRINTF("Button Option\n");
   }
+
+  // For ACC CTL
+  else if (!read_ACC_CTL_PIN() && ACC_CTL_MODE) {
+    acceleration__axis_data_s id = acceleration__get_data();
+
+    if ((id.x < -800) && (-400 < id.y < 400) && (id.z < 800)) {
+      Button_Status = status_read_button_up;
+      OLED__DEBUG_PRINTF("ACC_Up\n");
+    }
+
+    else if ((id.x > 800) && (-400 < id.y < 400) && (id.z < 800)) {
+      Button_Status = status_read_button_down;
+      OLED__DEBUG_PRINTF("ACC_Down\n");
+    }
+
+    else if ((-400 < id.x < 400) && (id.y < -800) && (id.z < 800)) {
+      Button_Status = status_read_button_left;
+      OLED__DEBUG_PRINTF("ACC_Left\n");
+    }
+
+    else if ((-400 < id.x < 400) && (id.y > 800) && (id.z < 800)) {
+      Button_Status = status_read_button_right;
+      OLED__DEBUG_PRINTF("ACC_Right\n");
+    }
+
+    else if ((id.x < -400) && (id.y < -400) && (id.z > 500)) {
+      Button_Status = status_read_button_back;
+      OLED__DEBUG_PRINTF("ACC_Exit\n");
+    }
+
+    else if ((id.x < -400) && (id.y > 400) && (id.z < 800)) {
+      Button_Status = status_read_button_option;
+      OLED__DEBUG_PRINTF("ACC_Option\n");
+    }
+
+    else if ((id.x > 400) && (id.y > 400) && (id.z < 800)) {
+      Button_Status = status_read_button_play_pause;
+      OLED__DEBUG_PRINTF("ACC_Play\n");
+    }
+    delay__ms(100); // give time for less sentive
+  }
+  delay__ms(50);
   return Button_Status;
 }
 
@@ -640,21 +681,16 @@ void OLED_print_updated_volumn() {
   OLED_print_string(4, 0, 0, "                ", 16);
 }
 
-void OLED_GUI_play_status_and_source(bool playing_status, bool bluetooth_status) {
+void OLED_GUI_play_status_and_source(bool playing_status) {
 
   if (playing_status) {
-    if (bluetooth_status) {
-      OLED_print_string(7, 0, 0, "Playing Form BT", 16);
-    } else {
-      OLED_print_string(7, 0, 0, "Playing Form SD", 16);
-    }
+    OLED_print_string(7, 0, 0, "Playing Now     ", 16);
     OLED_Send_Command(OLED_Activate_Scroll);
     OLED__DEBUG_PRINTF("Active scroll\n");
     OLED_Horizontal_Scroll(7, 7, 7, OLED_Left_Horizontal_Scroll, 1);
   } else {
     OLED_Send_Command(OLED_Deactivate_Scroll);
     OLED__DEBUG_PRINTF("DeActive scroll\n");
-
     OLED_print_string(7, 0, 0, "No Song to Play!", 16);
   }
 }
@@ -1118,7 +1154,7 @@ void OLED_GUI_NowPlay() {
 
   OLED_GUI_Now_prograss_bar(Current_play_progress);
   OLED_GUI_NowPlay_Page(4);
-  OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+  OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
   enum {
     play_next = 0,
@@ -1137,7 +1173,7 @@ void OLED_GUI_NowPlay() {
       case status_read_button_back: // back
         OLED_GUI_NowPlay_Page(4);   // default page
         // OLED_GUI_Now_prograss_bar(final_progress);
-        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
         OLED__DEBUG_PRINTF("back to previous page\n");
         break;
 
@@ -1151,7 +1187,7 @@ void OLED_GUI_NowPlay() {
         OLED_print_updated_volumn();
         OLED_GUI_NowPlay_Page(4);
         OLED_GUI_Now_prograss_bar(Current_play_progress);
-        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         // need to send volumn up command to decoder
         break;
@@ -1168,12 +1204,12 @@ void OLED_GUI_NowPlay() {
         OLED_print_string(5, 0, 0, "                ", 16);
         OLED_print_string(6, 0, 0, "                ", 16);
         OLED_GUI_Now_prograss_bar(Current_play_progress);
-        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         Option_arrow_index = 0; // reset arrow starting point
 
         OLED_GUI_NowPlay_Page(4);
-        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         break;
 
@@ -1184,7 +1220,7 @@ void OLED_GUI_NowPlay() {
         OLED_GUI_NowPlay_Page(4);
         Current_play_progress = 0;
         OLED_GUI_Now_prograss_bar(Current_play_progress);
-        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         break;
 
@@ -1204,12 +1240,12 @@ void OLED_GUI_NowPlay() {
 
           OLED_GUI_NowPlay_Page(4);
           OLED_GUI_Now_prograss_bar(Current_play_progress);
-          OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+          OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
         } else {
           OLED_GUI_NowPlay_Page(1); // pause
           OLED_GUI_NowPlay_Page(4);
           OLED_GUI_Now_prograss_bar(Current_play_progress);
-          OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+          OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
           vTaskSuspend(task_handle__player);
           OLED__DEBUG_PRINTF("Music Pause!\n");
@@ -1223,7 +1259,7 @@ void OLED_GUI_NowPlay() {
         OLED_GUI_NowPlay_Page(4);
         Current_play_progress = 0;
         OLED_GUI_Now_prograss_bar(Current_play_progress);
-        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         break;
 
@@ -1237,7 +1273,7 @@ void OLED_GUI_NowPlay() {
         OLED_print_updated_volumn();
         OLED_GUI_NowPlay_Page(4);
         OLED_GUI_Now_prograss_bar(Current_play_progress);
-        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+        OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         // need to send volumn down command to decoder
         break;
@@ -1252,7 +1288,7 @@ void OLED_GUI_NowPlay() {
           }
           OLED_GUI_NowPlay_Page(4);
           OLED_GUI_Now_prograss_bar(Current_play_progress);
-          OLED_GUI_play_status_and_source(OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+          OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
         }
 
         break;
@@ -1467,6 +1503,65 @@ void OLED_GUI_play_left_right(bool left_right) {
   }
 }
 
+void OLED_ACC_CTL_Page(bool turn_on_off) {
+  /**********************************
+   * 0  ----ACC  CTL----
+   * 1
+   * 2    -Mode Status-
+   * 3       ON/OFF
+   * 4
+   * 5     Have  Fun~
+   * 6
+   * 7
+   ********************************/
+  OLED_print_string(0, 0, 0, "----ACC  CTL----", 16);
+  OLED_print_string(2, 0, 0, "  -Mode Status- ", 16);
+  OLED_print_string(5, 0, 0, "    Have Fun~   ", 16);
+
+  if (turn_on_off) {
+    OLED_print_string(3, 0, 0, "       ON       ", 16);
+    OLED_Horizontal_Scroll(5, 5, 7, OLED_Left_Horizontal_Scroll, 1);
+
+  } else {
+    OLED_print_string(3, 0, 0, "       OFF       ", 16);
+  }
+}
+void OLED_ACC_CTL_MODE() {
+
+  uint8_t status_read_in_ACC = 0x00;
+  OLED_print_string(0, 0, 0, "----ACC  CTL----", 16);
+  OLED_print_string(1, 0, 0, "                ", 16);
+  OLED_print_string(3, 0, 0, "                ", 16);
+  OLED_print_string(4, 0, 0, "                ", 16);
+  OLED_print_string(6, 0, 0, "                ", 16);
+  OLED_print_string(7, 0, 0, "                ", 16);
+  OLED_ACC_CTL_Page(false);
+
+  OLED__DEBUG_PRINTF("Enter ACC MODE\n");
+  delay__ms(100); // give delay for input to avoid Accidental touch
+  while (1) {
+    status_read_in_ACC = OLED_GUI_Read_Button_Status();
+    if (status_read_in_ACC == status_read_button_back) {
+      break;
+    } else {
+      switch (status_read_in_ACC) // make decision of the next move
+      {
+      case status_read_button_play_pause: // play/pause
+        ACC_CTL_MODE = !ACC_CTL_MODE;
+        OLED_ACC_CTL_Page(ACC_CTL_MODE);
+        delay__ms(100);
+        OLED__DEBUG_PRINTF("Update Mode Status\n");
+        break;
+
+      default: // button_press return val is 0x00
+        break;
+      }
+    }
+  }
+  OLED_print_string(2, 0, 0, "                ", 16);
+  delay__ms(50); // give time to send the mp3 data if needed
+}
+
 bool Get_OLED_GUI_Play_Status() { return OLED_GUI_Play_Status; }
 void Flip_Play_status() { OLED_GUI_Play_Status = !OLED_GUI_Play_Status; }
 
@@ -1481,12 +1576,12 @@ void OLED_GUI_Move_decision() {
     case status_read_button_back: // back
       // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
       OLED_GUI_Next_Pos = 0;
-      OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+      OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status);
       OLED__DEBUG_PRINTF("back to previous page\n");
       break;
 
-    case status_read_button_up:                                        // up
-      OLED_GUI_Home_Page(2, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // go to botton left
+    case status_read_button_up:                    // up
+      OLED_GUI_Home_Page(2, OLED_GUI_Play_Status); // go to botton left
       OLED_GUI_Next_Pos = 2;
       break;
 
@@ -1494,8 +1589,8 @@ void OLED_GUI_Move_decision() {
       OLED__DEBUG_PRINTF("to option page\n");
       break;
 
-    case status_read_button_left:                                      // left
-      OLED_GUI_Home_Page(3, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to button right
+    case status_read_button_left:                  // left
+      OLED_GUI_Home_Page(3, OLED_GUI_Play_Status); // to button right
       OLED_GUI_Next_Pos = 3;
       break;
 
@@ -1503,24 +1598,24 @@ void OLED_GUI_Move_decision() {
       OLED_GUI_NowPlay();
       // resume the page
       // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
-      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status);
       OLED_GUI_Next_Pos = 0;
 
       break;
 
-    case status_read_button_right:                                     // right
-      OLED_GUI_Home_Page(1, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to top right
+    case status_read_button_right:                 // right
+      OLED_GUI_Home_Page(1, OLED_GUI_Play_Status); // to top right
       OLED_GUI_Next_Pos = 1;
       break;
 
-    case status_read_button_down:                                      // down
-      OLED_GUI_Home_Page(2, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // go to botton left
+    case status_read_button_down:                  // down
+      OLED_GUI_Home_Page(2, OLED_GUI_Play_Status); // go to botton left
       OLED_GUI_Next_Pos = 2;
       break;
 
     default: // button_press return val is 0x00
       // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
-      // OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+      // OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status);
       break;
     }
     break;
@@ -1530,12 +1625,12 @@ void OLED_GUI_Move_decision() {
     {
     case status_read_button_back: // back
       OLED_GUI_Next_Pos = 0;
-      OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+      OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status);
       OLED__DEBUG_PRINTF("back to previous page\n");
       break;
 
-    case status_read_button_up:                                        // up
-      OLED_GUI_Home_Page(3, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // go to botton right
+    case status_read_button_up:                    // up
+      OLED_GUI_Home_Page(3, OLED_GUI_Play_Status); // go to botton right
       OLED_GUI_Next_Pos = 3;
       break;
 
@@ -1543,8 +1638,8 @@ void OLED_GUI_Move_decision() {
       OLED__DEBUG_PRINTF("to option page\n");
       break;
 
-    case status_read_button_left:                                      // left
-      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to top left
+    case status_read_button_left:                  // left
+      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status); // to top left
       OLED_GUI_Next_Pos = 0;
       break;
 
@@ -1557,69 +1652,70 @@ void OLED_GUI_Move_decision() {
         OLED_GUI_Play_Status = true;
         OLED_GUI_NowPlay(); // enter now playing page
       }
-      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to top left
+      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status); // to top left
       OLED_GUI_Next_Pos = 0;
       break;
 
-    case status_read_button_right:                                     // right
-      OLED_GUI_Home_Page(2, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to button left
+    case status_read_button_right:                 // right
+      OLED_GUI_Home_Page(2, OLED_GUI_Play_Status); // to button left
       OLED_GUI_Next_Pos = 2;
       break;
 
-    case status_read_button_down:                                      // down
-      OLED_GUI_Home_Page(3, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // go to botton right
+    case status_read_button_down:                  // down
+      OLED_GUI_Home_Page(3, OLED_GUI_Play_Status); // go to botton right
       OLED_GUI_Next_Pos = 3;
       break;
 
     default: // button_press return val is 0x00
       // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
-      // OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+      // OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status);
       break;
     }
     break;
 
-  case 2:                     // button left------------------------------>Bluetooth page
+  case 2:                     // button left------------------------------>ACC CTL page
     switch (button_next_move) // make decision of the next move
     {
     case status_read_button_back: // back
       OLED_GUI_Next_Pos = 0;
-      OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+      OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status);
       OLED__DEBUG_PRINTF("back to previous page\n");
       break;
 
-    case status_read_button_up:                                        // up
-      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // go to top left
+    case status_read_button_up:                    // up
+      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status); // go to top left
       OLED_GUI_Next_Pos = 0;
       break;
 
     case status_read_button_option: // option
       OLED__DEBUG_PRINTF("to option page\n");
+      OLED_GUI_Next_Pos = 0;
       break;
 
-    case status_read_button_left:                                      // left
-      OLED_GUI_Home_Page(1, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to top right
+    case status_read_button_left:                  // left
+      OLED_GUI_Home_Page(1, OLED_GUI_Play_Status); // to top right
       OLED_GUI_Next_Pos = 1;
       break;
 
     case status_read_button_play_pause: // play/pause
-      OLED__DEBUG_PRINTF("play/ pause, or enter a page, choose sth\n");
-      // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
-      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to top left
+      OLED_ACC_CTL_MODE();
+      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status); // to top left
+      OLED_GUI_Next_Pos = 0;
       break;
 
-    case status_read_button_right:                                     // right
-      OLED_GUI_Home_Page(3, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to button right
+    case status_read_button_right:                 // right
+      OLED_GUI_Home_Page(3, OLED_GUI_Play_Status); // to button right
       OLED_GUI_Next_Pos = 3;
       break;
 
-    case status_read_button_down:                                      // down
-      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // go to top left
+    case status_read_button_down:                  // down
+      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status); // go to top left
       OLED_GUI_Next_Pos = 0;
       break;
 
     default: // button_press return val is 0x00
       // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
-      // OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+      // OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status);
       break;
     }
     break;
@@ -1629,12 +1725,12 @@ void OLED_GUI_Move_decision() {
     {
     case status_read_button_back: // back
       OLED_GUI_Next_Pos = 0;
-      OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+      OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status);
       OLED__DEBUG_PRINTF("back to previous page\n");
       break;
 
-    case status_read_button_up:                                        // up
-      OLED_GUI_Home_Page(1, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // go to top right
+    case status_read_button_up:                    // up
+      OLED_GUI_Home_Page(1, OLED_GUI_Play_Status); // go to top right
       OLED_GUI_Next_Pos = 1;
       break;
 
@@ -1642,8 +1738,8 @@ void OLED_GUI_Move_decision() {
       OLED__DEBUG_PRINTF("to option page\n");
       break;
 
-    case status_read_button_left:                                      // left
-      OLED_GUI_Home_Page(2, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to button left
+    case status_read_button_left:                  // left
+      OLED_GUI_Home_Page(2, OLED_GUI_Play_Status); // to button left
       OLED_GUI_Next_Pos = 2;
       break;
 
@@ -1659,17 +1755,17 @@ void OLED_GUI_Move_decision() {
 
       // resume the page
       // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
-      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to top left
+      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status); // to top left
       OLED_GUI_Next_Pos = 0;
       break;
 
-    case status_read_button_right:                                     // right
-      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // to top left
+    case status_read_button_right:                 // right
+      OLED_GUI_Home_Page(0, OLED_GUI_Play_Status); // to top left
       OLED_GUI_Next_Pos = 0;
       break;
 
-    case status_read_button_down:                                      // down
-      OLED_GUI_Home_Page(1, OLED_GUI_Play_Status, OLED_GUI_BT_Status); // go to top right
+    case status_read_button_down:                  // down
+      OLED_GUI_Home_Page(1, OLED_GUI_Play_Status); // go to top right
       OLED_GUI_Next_Pos = 1;
       break;
 
@@ -1677,14 +1773,14 @@ void OLED_GUI_Move_decision() {
       // button_press return val is 0x00, the music will be paused if oled tasks is
       // higher priority than reader tasks
       // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
-      // OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+      // OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status);
       break;
     }
     break;
 
   default: // default of recent page position, but it should not enter here
     // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
-    // OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status, OLED_GUI_BT_Status);
+    // OLED_GUI_Home_Page(OLED_GUI_Next_Pos, OLED_GUI_Play_Status);
     break;
   }
 }

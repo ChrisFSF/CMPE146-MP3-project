@@ -21,9 +21,9 @@
 #include "uart_printf.h"
 // #include "event_groups.h"
 #include "Control_Button.h"
+#include "acceleration.h"
 #include "audio_decoder.h"
 #include "ff.h"
-// #include "mp3_decoder.h"
 #include "oled_spi.h"
 #include "ssp0.h"
 #include "ssp1.h"
@@ -35,7 +35,7 @@
 
 #define OLED_TEST 1
 #define DECODER_TEST 1
-
+#define ACC_CTL_TEST 0
 #if OLED_TEST // Oled code
 
 // For Controling Buttons Test
@@ -60,8 +60,6 @@ void oled_print(void *p) {
 
 #endif
 
-#if DECODER_TEST
-
 app_cli_status_e cli__playsong(app_cli__argument_t argument, sl_string_t user_input_minus_command_name,
                                app_cli__print_string_function cli_output) {
   song_name_t song_name = {0};
@@ -77,6 +75,8 @@ app_cli_status_e cli__playsong(app_cli__argument_t argument, sl_string_t user_in
 
   return APP_CLI_STATUS__SUCCESS;
 }
+
+#if DECODER_TEST
 
 void song_reader_task(void *p) {
   song_name_t song_name;
@@ -165,11 +165,53 @@ void task_spi_task(void *p) {
     vTaskDelay(portMAX_DELAY);
   }
 }
+
 #endif
 
-// search this to get where is come from
+#if ACC_CTL_TEST
+void acc_task(void *p) {
+  while (1) {
+    acceleration__axis_data_s id = acceleration__get_data();
+    // printf("\nX = %d", id.x);
+    // printf("  Y = %d", id.y);
+    // printf("  Z = %d", id.z);
+    if ((id.x < -800) && (-400 < id.y < 400) && (id.z < 800)) {
+      printf("Up\n");
+    }
+    if ((id.x > 800) && (-400 < id.y < 400) && (id.z < 800)) {
+      printf("Down\n");
+    }
+
+    if ((-400 < id.x < 400) && (id.y < -800) && (id.z < 800)) {
+      printf("Left\n");
+    }
+    if ((-400 < id.x < 400) && (id.y > 800) && (id.z < 800)) {
+      printf("Right\n");
+    }
+    if ((id.x < -400) && (id.y < -400) && (id.z > 500)) {
+      printf("Exit\n");
+    }
+
+    if ((id.x < -400) && (id.y > 400) && (id.z < 800)) {
+      printf("Option\n");
+    }
+
+    if ((id.x > 400) && (id.y > 400) && (id.z < 800)) {
+      printf("Play\n");
+    }
+
+    vTaskDelay(100);
+  }
+}
+#endif
+
 // RTOS trace: Failed to write page
 int main(void) {
+#if ACC_CTL_TEST
+  acceleration__init();
+  xTaskCreate(acc_task, "task_spi_task", (2000 / sizeof(void *)), NULL, 5, NULL);
+
+#endif
 
 #if DECODER_TEST
   queue_song_name = xQueueCreate(1, sizeof(song_name_t));
@@ -187,6 +229,7 @@ int main(void) {
 
 #if OLED_TEST // oled
   ssp0__init_lab(24);
+  acceleration__init(); // for ACC CTL input
   OLED_init();
   Read_SD_Music_file();
 
@@ -201,6 +244,7 @@ int main(void) {
   gpiox__attach_interrupt(get_button_val(4), GPIOx_INTR_FALLING_EDGE, Control_Button_GPIO2_Interrupt);
   gpiox__attach_interrupt(get_button_val(5), GPIOx_INTR_FALLING_EDGE, Control_Button_GPIO2_Interrupt);
   gpiox__attach_interrupt(get_button_val(6), GPIOx_INTR_FALLING_EDGE, Control_Button_GPIO2_Interrupt);
+  gpiox__attach_interrupt(get_button_val(7), GPIOx_INTR_FALLING_EDGE, Control_Button_GPIO2_Interrupt);
 
   NVIC_EnableIRQ(GPIO_IRQn);
   lpc_peripheral__enable_interrupt(GPIO_IRQn, gpiox__interrupt_dispatcher, "Control Button Interrupt Check");

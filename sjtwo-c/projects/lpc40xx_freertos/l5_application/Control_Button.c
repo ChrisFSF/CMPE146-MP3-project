@@ -18,6 +18,12 @@ const port_pin_s Button_up_PIN = {2, 6};
 const port_pin_s Button_down_PIN = {2, 5};
 const port_pin_s Button_back_PIN = {2, 4};
 const port_pin_s Button_option_PIN = {2, 1};
+const port_pin_s Read_ACC_CTL_PIN = {2, 2};
+
+bool read_ACC_CTL_PIN() {
+  gpiox__set_as_input(Read_ACC_CTL_PIN);
+  return gpiox__get_level(Read_ACC_CTL_PIN);
+}
 
 bool read_button_left() {
   gpiox__set_as_input(Button_left_PIN);
@@ -83,8 +89,11 @@ port_pin_s get_button_val(uint8_t index) {
     return Button_down_PIN;
     break;
 
+  case 7:
+    return Read_ACC_CTL_PIN;
+
   default:
-    return Button_left_PIN;
+    return Button_back_PIN;
     break;
   }
   return Button_left_PIN;

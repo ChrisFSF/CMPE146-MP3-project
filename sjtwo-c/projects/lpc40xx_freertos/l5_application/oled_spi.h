@@ -84,13 +84,13 @@ enum {
 void OLED_GUI_Move_decision();
 
 // Pages
-void OLED_GUI_Home_Page(uint8_t position, bool playing_status, bool bluetooth_status);
+void OLED_GUI_Home_Page(uint8_t position, bool playing_status);
 
 // Recent play page
 void OLED_GUI_NowPlay_Page(uint8_t position);
 void OLED_GUI_NowPlay();
 void OLED_GUI_Now_prograss_bar(int percent);
-void OLED_GUI_play_status_and_source(bool playing_status, bool bluetooth_status);
+void OLED_GUI_play_status_and_source(bool playing_status);
 void OLED_update_progress(int percent);
 void OLED_print_updated_volumn();
 void OLED_GUI_play_left_right(bool left_right);
@@ -107,10 +107,11 @@ void OLED_GUI_Send_New_Song();
 void OLED_GUI_Folder_Page(uint8_t inc_dec);
 void OLED_GUI_Folder();
 
-// Bluetooth page
-void OLED_Bluetooth();
+// ACC ctl page
+void OLED_ACC_CTL_Page(bool turn_on_off);
+void OLED_ACC_CTL_MODE();
 
-// Sleep mode
+// Accelerator control mode
 void OLED_GUI_Sleep_mode();
 uint8_t OLED_GUI_Read_Button_Status();
 

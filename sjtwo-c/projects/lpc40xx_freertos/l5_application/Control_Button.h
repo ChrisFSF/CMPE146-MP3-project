@@ -10,3 +10,4 @@ bool read_button_up();
 bool read_button_down();
 bool read_button_back();
 bool read_button_option();
+bool read_ACC_CTL_PIN();
