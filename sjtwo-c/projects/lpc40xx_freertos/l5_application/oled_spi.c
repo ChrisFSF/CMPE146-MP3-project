@@ -16,7 +16,7 @@
 #include <math.h>
 
 /// Set to non-zero to enable debugging, and then you can use OLED__DEBUG_PRINTF()
-#define OLED__ENABLE_DEBUGGING 1
+#define OLED__ENABLE_DEBUGGING 0
 
 #if OLED__ENABLE_DEBUGGING
 #include <stdio.h>
@@ -57,14 +57,15 @@ static int Treble_Frequency_index = 2;
 static int Bass_Amplitude_index = 2;
 static int Bass_Frequency_index = 2;
 
-static uint16_t vol_change_for_each_time = 0x0a0a;
-static uint16_t AUDIO_VOLUME = 0; // range (0 - a0a0)
+// static uint16_t vol_change_for_each_time = 0x0a0a;
+// static uint16_t AUDIO_VOLUME = 0; // range (0 - a0a0)
 
-static char Treble_A[16] = "TA------+------ ";
 static char Treble_F[16] = "TF+------------ ";
+static char Treble_A[16] = "TA------+------ ";
 
-static char Bass_A[16] = "BA+------------ ";
 static char Bass_F[16] = "BF+------------ ";
+static char Bass_A[16] = "BA+------------ ";
+
 // For File scanning
 // Private functions
 
@@ -466,7 +467,6 @@ void OLED_init() {
   Bass_status = false;
   Treble_status = false;
   Option_arrow_index = 1;
-  AUDIO_VOLUME = 0x3232;
   Treble_Amplitude_index = 8;
   Treble_Frequency_index = 2;
   Bass_Amplitude_index = 2;
@@ -478,7 +478,7 @@ void OLED_init() {
 
   OLED_Send_Command(OLED_Display_ON_Normal_Mode);
 
-  dec_set_VOLUME(AUDIO_VOLUME);
+  dec_set_VOLUME_(Current_play_volumn);
   delay__ms(101);
   // wait for 100ms
   //   OLED__DEBUG_PRINTF("OLED Finished init\n");
@@ -804,10 +804,10 @@ static void ftoa(float n, char *res, int afterpoint) {
 void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
   /**********************************
    * 0     Playing Options
-   * 1  TA------+------*
-   * 2  TF+------------*
-   * 3  BA+------------*
-   * 4  BF+------------*
+   * 1  TF+------------*
+   * 2  TA------+------*
+   * 3  BF+------------*
+   * 4  BA+------------*
    * 5      Music Info.
    * 6  Format    MP3/WAV/FLAC
    * 7  Size      XXXMB
@@ -839,19 +839,19 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
   // clear previous *
   switch (previous_index) {
   case 1:
-    Treble_A[15] = ' ';
-    break;
-
-  case 2:
     Treble_F[15] = ' ';
     break;
 
+  case 2:
+    Treble_A[15] = ' ';
+    break;
+
   case 3:
-    Bass_A[15] = ' ';
+    Bass_F[15] = ' ';
     break;
 
   case 4:
-    Bass_F[15] = ' ';
+    Bass_A[15] = ' ';
     break;
   default:
     break;
@@ -859,37 +859,10 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
 
   // update * and +
   switch (Option_arrow_index) {
-  case 1: // Treble A
-    OLED__DEBUG_PRINTF("Enter Treble_A\n");
-
-    Treble_A[15] = '*';
-    switch (Left_Right) {
-    case 0: // left
-      Treble_Amplitude_index--;
-      if (Treble_Amplitude_index < 2) {
-        Treble_Amplitude_index = 2;
-      }
-      Treble_A[Treble_Amplitude_index] = '+';
-      Treble_A[Treble_Amplitude_index + 1] = '-';
-      break;
-
-    case 1: // right
-      Treble_Amplitude_index++;
-      if (Treble_Amplitude_index > 14) {
-        Treble_Amplitude_index = 14;
-      }
-      Treble_A[Treble_Amplitude_index] = '+';
-      Treble_A[Treble_Amplitude_index - 1] = '-';
-      break;
-
-    default: // no move
-      break;
-    }
-    break;
-
-  case 2: // Treble F
-    Treble_F[15] = '*';
+  case 1: // Treble F
     OLED__DEBUG_PRINTF("Enter Treble_F\n");
+
+    Treble_F[15] = '*';
     switch (Left_Right) {
     case 0: // left
       Treble_Frequency_index--;
@@ -914,27 +887,26 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
     }
     break;
 
-  case 3: // Bass A
-    OLED__DEBUG_PRINTF("Enter Basss_A\n");
-
-    Bass_A[15] = '*';
+  case 2: // Treble A
+    Treble_A[15] = '*';
+    OLED__DEBUG_PRINTF("Enter Treble_A\n");
     switch (Left_Right) {
     case 0: // left
-      Bass_Amplitude_index--;
-      if (Bass_Amplitude_index < 2) {
-        Bass_Amplitude_index = 2;
+      Treble_Amplitude_index--;
+      if (Treble_Amplitude_index < 2) {
+        Treble_Amplitude_index = 2;
       }
-      Bass_A[Bass_Amplitude_index] = '+';
-      Bass_A[Bass_Amplitude_index + 1] = '-';
+      Treble_A[Treble_Amplitude_index] = '+';
+      Treble_A[Treble_Amplitude_index + 1] = '-';
       break;
 
     case 1: // right
-      Bass_Amplitude_index++;
-      if (Bass_Amplitude_index > 14) {
-        Bass_Amplitude_index = 14;
+      Treble_Amplitude_index++;
+      if (Treble_Amplitude_index > 14) {
+        Treble_Amplitude_index = 14;
       }
-      Bass_A[Bass_Amplitude_index] = '+';
-      Bass_A[Bass_Amplitude_index - 1] = '-';
+      Treble_A[Treble_Amplitude_index] = '+';
+      Treble_A[Treble_Amplitude_index - 1] = '-';
       break;
 
     default: // no move
@@ -942,8 +914,8 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
     }
     break;
 
-  case 4: // Bass F
-    OLED__DEBUG_PRINTF("Enter Bass_F\n");
+  case 3: // Bass F
+    OLED__DEBUG_PRINTF("Enter Basss_F\n");
 
     Bass_F[15] = '*';
     switch (Left_Right) {
@@ -970,15 +942,44 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
     }
     break;
 
+  case 4: // Bass A
+    OLED__DEBUG_PRINTF("Enter Bass_A\n");
+
+    Bass_A[15] = '*';
+    switch (Left_Right) {
+    case 0: // left
+      Bass_Amplitude_index--;
+      if (Bass_Amplitude_index < 2) {
+        Bass_Amplitude_index = 2;
+      }
+      Bass_A[Bass_Amplitude_index] = '+';
+      Bass_A[Bass_Amplitude_index + 1] = '-';
+      break;
+
+    case 1: // right
+      Bass_Amplitude_index++;
+      if (Bass_Amplitude_index > 14) {
+        Bass_Amplitude_index = 14;
+      }
+      Bass_A[Bass_Amplitude_index] = '+';
+      Bass_A[Bass_Amplitude_index - 1] = '-';
+      break;
+
+    default: // no move
+      break;
+    }
+    break;
+
   default:
     break;
   }
   dec_set_BASS_TREBLE(Treble_Amplitude_index, Treble_Frequency_index, Bass_Amplitude_index, Bass_Frequency_index);
+  OLED__DEBUG_PRINTF("Update Treble/Bass\n");
 
-  OLED_print_string(1, 0, 0, Treble_A, 16);
-  OLED_print_string(2, 0, 0, Treble_F, 16);
-  OLED_print_string(3, 0, 0, Bass_A, 16);
-  OLED_print_string(4, 0, 0, Bass_F, 16);
+  OLED_print_string(1, 0, 0, Treble_F, 16);
+  OLED_print_string(2, 0, 0, Treble_A, 16);
+  OLED_print_string(3, 0, 0, Bass_F, 16);
+  OLED_print_string(4, 0, 0, Bass_A, 16);
 
   OLED_print_string(5, 0, 0, "   Music Info.  ", 16);
 
@@ -1134,13 +1135,6 @@ void OLED_GUI_NowPlay() {
         if (Current_play_volumn > 10) {
           Current_play_volumn = 10;
         }
-        // AUDIO_VOLUME -= vol_change_for_each_time;
-        // OLED__DEBUG_PRINTF("Set vol: 0x%x\n", AUDIO_VOLUME);
-        // dec_set_VOLUME(AUDIO_VOLUME);
-
-        // if (AUDIO_VOLUME == 0x00) {
-        //   AUDIO_VOLUME += vol_change_for_each_time;
-        // }
         dec_set_VOLUME_(Current_play_volumn);
 
         OLED_print_updated_volumn();
@@ -1227,13 +1221,6 @@ void OLED_GUI_NowPlay() {
         if (Current_play_volumn < 0) {
           Current_play_volumn = 0;
         }
-
-        // AUDIO_VOLUME += vol_change_for_each_time;
-        // if (AUDIO_VOLUME >= 0x6464) {
-        //   AUDIO_VOLUME = 0x6464;
-        // }
-        // OLED__DEBUG_PRINTF("Set vol: 0x%x\n", AUDIO_VOLUME);
-        // dec_set_VOLUME(AUDIO_VOLUME);
         dec_set_VOLUME_(Current_play_volumn);
 
         OLED_print_updated_volumn();

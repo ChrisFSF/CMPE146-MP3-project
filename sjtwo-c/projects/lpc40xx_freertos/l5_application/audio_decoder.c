@@ -55,9 +55,8 @@ void mp3_initDecoder() {
   // mp3_writeRequest(SCI_CLOCKF, 0x8BE8); // XTALI = 12Mhz
   mp3_writeRequest(SCI_VOL, 0x3232);
 
-  mp3_writeRequest(SCI_BASS, 0x10f0);
   mp3_writeRequest(SCI_AUDATA, AUDATA);
-
+  dec_set_BASS_TREBLE(8, 2, 2, 2);
   // mp3_writeRequest(SCI_AICTRL0, 0x7000);
   // mp3_writeRequest(SCI_AICTRL1, 0x7000);
 
@@ -65,7 +64,6 @@ void mp3_initDecoder() {
 }
 
 void dec_set_VOLUME(uint16_t value) { mp3_writeRequest(SCI_VOL, value); }
-
 
 /*  control both left and right channel using one value
  *  function parameter range: 0-10
@@ -79,30 +77,28 @@ void dec_set_VOLUME_(int audio_volume) {
     mp3_writeRequest(SCI_VOL, 0xFFFF);
   } else {
     uint16_t command = 0x0000;
-    uint8_t volume = (120 - (audio_volume * 12)) & 0xFF; 
+    uint8_t volume = (120 - (audio_volume * 12)) & 0xFF;
+
     command |= volume << 8;
     command |= volume << 0;
     mp3_writeRequest(SCI_VOL, command);
   }
 }
 
-/*  Controls left and right channel volume seperately 
+/*  Controls left and right channel volume seperately
  *  volume scale: 0-10
  *  volume encoding max: 0x00, min: 0xFF
  *  put into scale, then 0->0xFF (inversed 0x00), 10->0x05 (0xFA)
  */
-void dec_set_VOLUME_LR(int audio_volume_left, int audio_volume_right){
+void dec_set_VOLUME_LR(int audio_volume_left, int audio_volume_right) {
   uint16_t command = 0x0000;
   command |= ((120 - (audio_volume_left * 12)) & 0xFF) << 8;
   command |= ((120 - (audio_volume_right * 12)) & 0xFF) << 0;
   mp3_writeRequest(SCI_VOL, command);
 }
 
-
-void dec_set_BASS_TREBLE( int Treble_Amplitude_index, 
-                          int Treble_Frequency_index, 
-                          int Bass_Amplitude_index, 
-                          int Bass_Frequency_index){
+void dec_set_BASS_TREBLE(int Treble_Amplitude_index, int Treble_Frequency_index, int Bass_Amplitude_index,
+                         int Bass_Frequency_index) {
   uint16_t command = 0x0000;
   command |= ((Treble_Amplitude_index - 2) & 0xF) << 12;
   command |= ((Treble_Frequency_index - 2) & 0xF) << 8;
