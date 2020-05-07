@@ -16,7 +16,7 @@
 #include <math.h>
 
 /// Set to non-zero to enable debugging, and then you can use OLED__DEBUG_PRINTF()
-#define OLED__ENABLE_DEBUGGING 0
+#define OLED__ENABLE_DEBUGGING 1
 
 #if OLED__ENABLE_DEBUGGING
 #include <stdio.h>
@@ -56,9 +56,6 @@ static int Treble_Amplitude_index = 8;
 static int Treble_Frequency_index = 2;
 static int Bass_Amplitude_index = 2;
 static int Bass_Frequency_index = 2;
-
-// static uint16_t vol_change_for_each_time = 0x0a0a;
-// static uint16_t AUDIO_VOLUME = 0; // range (0 - a0a0)
 
 static char Treble_F[16] = "TF+------------ ";
 static char Treble_A[16] = "TA------+------ ";
@@ -819,6 +816,9 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
   // Option_arrow_index : 0 - 3
   // Print Layout
   // OLED_print_string(0, 0, 0, " Playing Options", 16);
+  if (Option_arrow_index == 0) {
+    Option_arrow_index = 1;
+  }
   int previous_index = Option_arrow_index;
   if (up_down == 1) { // go down
     Option_arrow_index++;
@@ -835,6 +835,8 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
       Option_arrow_index = 4;
     }
   }
+
+  OLED__DEBUG_PRINTF("curr_opt arrow_ind %i\n", Option_arrow_index);
 
   // clear previous *
   switch (previous_index) {
@@ -1020,11 +1022,8 @@ void OLED_GUI_NowPlay_Option() {
   OLED_print_string(4, 0, 0, "                ", 16);
   OLED_print_string(5, 0, 0, "                ", 16);
   OLED_print_string(6, 0, 0, "                ", 16);
-  Option_arrow_index = 1;
-  Treble_Amplitude_index = 8;
-  Treble_Frequency_index = 2;
-  Bass_Amplitude_index = 2;
-  Bass_Frequency_index = 2;
+
+  dec_set_BASS_TREBLE(Treble_Amplitude_index, Treble_Frequency_index, Bass_Amplitude_index, Bass_Frequency_index);
 
   enum {
     Up = 0,
@@ -1090,6 +1089,18 @@ void OLED_GUI_NowPlay_Option() {
     }
     delay__ms(50); // give time to send the mp3 data if needed
   }
+
+  Option_arrow_index = 1;
+  Treble_Amplitude_index = 8;
+  Treble_Frequency_index = 2;
+  Bass_Amplitude_index = 2;
+  Bass_Frequency_index = 2;
+
+  strcpy(Treble_F, "TF+------------ ");
+  strcpy(Treble_A, "TA------+------ ");
+  strcpy(Bass_F, "BF+------------ ");
+  strcpy(Bass_A, "BA+------------ ");
+
   OLED__DEBUG_PRINTF("Exit Option Page\n");
   // OLED_print_string(1, 0, 0, "                ", 16); // clear the line 1
 }
