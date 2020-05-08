@@ -153,12 +153,12 @@ void song_player_task(void *p) {
 }
 
 void task_spi_task(void *p) {
-  mp3_dec id = {0x01, 0x02, 0x03, 0x04};
+  dec_spi_4bytes_t id = {0x01, 0x02, 0x03, 0x04};
   vTaskDelay(1000);
   dec_init();
 
   for (uint8_t i = 0; i < 16; i++) {
-    id = mp3_dec_read(0x03, i, 0x12, 0x34);
+    id = dec_write_read(0x03, i, 0x12, 0x34);
     // printf("dec_write: %x, %x, %x, %x\n", id.first_byte, id.second_byte, id.third_byte, id.forth_byte);
     vTaskDelay(1);
   }
