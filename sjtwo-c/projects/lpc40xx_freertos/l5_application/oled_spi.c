@@ -1767,6 +1767,7 @@ void OLED_GUI_Move_decision() {
       break;
 
     case status_read_button_play_pause: // play/pause
+      vTaskSuspend(task_handle__player);
       OLED_print_string(1, 0, 0, "                ", 16);
       OLED_print_string(2, 0, 0, "                ", 16);
       OLED_print_string(3, 0, 0, "                ", 16);
@@ -1775,6 +1776,7 @@ void OLED_GUI_Move_decision() {
       OLED_print_string(6, 0, 0, "                ", 16);
       OLED_print_string(7, 0, 0, "                ", 16);
       OLED_GUI_Sleep_mode();
+      vTaskResume(task_handle__player);
 
       // resume the page
       // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
