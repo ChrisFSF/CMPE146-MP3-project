@@ -145,6 +145,7 @@ void song_player_task(void *p) {
         byte_sent_counter += spi_send_size;
         dec_dds();
       }
+      OLED_Get_sent_song_update(byte_sent_counter);
       //   xSemaphoreGive(OLED_Song_Reader_task_swtich);
       // }
     }
@@ -172,31 +173,35 @@ void task_spi_task(void *p) {
 void acc_task(void *p) {
   while (1) {
     acceleration__axis_data_s id = acceleration__get_data();
-    // printf("\nX = %d", id.x);
-    // printf("  Y = %d", id.y);
-    // printf("  Z = %d", id.z);
-    if ((id.x < -800) && (-400 < id.y < 400) && (id.z < 800)) {
-      printf("Up\n");
-    }
-    if ((id.x > 800) && (-400 < id.y < 400) && (id.z < 800)) {
-      printf("Down\n");
+    printf("\nX = %d", id.x);
+    printf("  Y = %d", id.y);
+    printf("  Z = %d", id.z);
+
+    if ((-400 < id.x < 400) && (id.y > 700) && (id.z < 800)) {
+
+      printf("x: %d, Up\n");
     }
 
     if ((-400 < id.x < 400) && (id.y < -800) && (id.z < 800)) {
+      printf("Down\n");
+    }
+
+    if ((id.x < -800) && (-400 < id.y < 400) && (id.z < 800)) {
       printf("Left\n");
     }
-    if ((-400 < id.x < 400) && (id.y > 800) && (id.z < 800)) {
+    if ((id.x > 800) && (-400 < id.y < 400) && (id.z < 800)) {
       printf("Right\n");
-    }
-    if ((id.x < -400) && (id.y < -400) && (id.z > 500)) {
-      printf("Exit\n");
     }
 
     if ((id.x < -400) && (id.y > 400) && (id.z < 800)) {
-      printf("Option\n");
+      printf("Exit\n");
     }
 
     if ((id.x > 400) && (id.y > 400) && (id.z < 800)) {
+      printf("Option\n");
+    }
+
+    if ((id.x > 400) && (id.y < -400) && (id.z < 800)) {
       printf("Play\n");
     }
 
@@ -207,6 +212,7 @@ void acc_task(void *p) {
 
 // RTOS trace: Failed to write page
 int main(void) {
+
 #if ACC_CTL_TEST
   acceleration__init();
   xTaskCreate(acc_task, "task_spi_task", (2000 / sizeof(void *)), NULL, 5, NULL);

@@ -170,7 +170,7 @@ void dec_init() {
   dec_rst();
 
   vTaskDelay(100);
-  puts("mp3_initDecoder");
+  // puts("mp3_initDecoder");
   mp3_initDecoder();
   uint8_t divisor = (uint8_t)(96U / 8);
   LPC_SSP1->CPSR = divisor;

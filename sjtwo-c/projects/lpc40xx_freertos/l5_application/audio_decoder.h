@@ -17,9 +17,9 @@ typedef uint8_t song_data_block_t[512];
 static const uint16_t MODE = 0x4810;   // 4800
 static const uint16_t CLOCKF = 0xE000; // was 9800, EBE8, B3E8, BBE8
 static volatile uint16_t VOL = 0x2222; // full vol
-static uint16_t BASS = 0x0076;         // was 00F6
-static uint16_t AUDATA = 0xAC45;       // for stereo decoding, AC45,AC80, BB80-check
-static uint16_t STATUS;
+// static uint16_t BASS = 0x0076;         // was 00F6
+static uint16_t AUDATA = 0xAC45; // for stereo decoding, AC45,AC80, BB80-check
+// static uint16_t STATUS;
 // extern SemaphoreHandle_t xSemaphore_mutex_spi;
 // VS10xx SCI Registers
 #define SCI_MODE 0x00
@@ -45,8 +45,8 @@ static uint16_t STATUS;
 #define WRITE 0x02
 
 // static uint8_t SEND_NUM_BYTES = 32;
-static uint16_t READ_BYTES_FROM_FILE = 4096;
-static uint16_t TRANSMIT_BYTES_TO_DECODER = 32;
+// static uint16_t READ_BYTES_FROM_FILE = 4096;
+// static uint16_t TRANSMIT_BYTES_TO_DECODER = 32;
 
 typedef struct {
   uint8_t first_byte;

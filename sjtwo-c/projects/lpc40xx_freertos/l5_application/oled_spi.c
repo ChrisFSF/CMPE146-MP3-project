@@ -44,7 +44,8 @@ static bool OLED_GUI_Play_Status = false;
 static bool ACC_CTL_MODE = false;
 
 static char Current_play_song_name[16];
-static int Current_play_progress = 0;
+static uint32_t Current_song_total_size = 1;
+static uint32_t Current_song_sent_size = 0;
 static int Current_play_volumn = 0;
 static uint8_t Arrow_index = 0;         // this is index of song list
 static uint8_t Current_Arrow_index = 1; // this is the index correspronse to each page's arrow
@@ -82,7 +83,7 @@ typedef enum song_format {
 typedef struct {
   song_memory_t song_name;
   enum song_format song_type;
-  uint16_t song_size; // need to divide 1024 to get unit of KB
+  uint32_t song_size; // need to divide 1024 to get unit of KB
 
 } song_info;
 
@@ -452,7 +453,9 @@ void OLED_init() {
   ACC_CTL_MODE = false;
 
   strncpy(Current_play_song_name, "                ", 15);
-  Current_play_progress = 0;
+  Current_song_total_size = 1;
+  Current_song_sent_size = 0;
+
   Current_play_volumn = 5;
 
   number_of_songs = 0;
@@ -534,37 +537,37 @@ uint8_t OLED_GUI_Read_Button_Status() {
   else if (!read_ACC_CTL_PIN() && ACC_CTL_MODE) {
     acceleration__axis_data_s id = acceleration__get_data();
 
-    if ((id.x < -800) && (-400 < id.y < 400) && (id.z < 800)) {
+    if ((-400 < id.x < 400) && (id.y > 700) && (id.z < 800)) {
       Button_Status = status_read_button_up;
       OLED__DEBUG_PRINTF("ACC_Up\n");
     }
 
-    else if ((id.x > 800) && (-400 < id.y < 400) && (id.z < 800)) {
+    else if ((-400 < id.x < 400) && (id.y < -800) && (id.z < 800)) {
       Button_Status = status_read_button_down;
       OLED__DEBUG_PRINTF("ACC_Down\n");
     }
 
-    else if ((-400 < id.x < 400) && (id.y < -800) && (id.z < 800)) {
+    else if ((id.x < -800) && (-400 < id.y < 400) && (id.z < 800)) {
       Button_Status = status_read_button_left;
       OLED__DEBUG_PRINTF("ACC_Left\n");
     }
 
-    else if ((-400 < id.x < 400) && (id.y > 800) && (id.z < 800)) {
+    else if ((id.x > 800) && (-400 < id.y < 400) && (id.z < 800)) {
       Button_Status = status_read_button_right;
       OLED__DEBUG_PRINTF("ACC_Right\n");
     }
 
-    else if ((id.x < -400) && (id.y < -400) && (id.z > 500)) {
+    else if ((id.x < -400) && (id.y > 400) && (id.z < 800)) {
       Button_Status = status_read_button_back;
       OLED__DEBUG_PRINTF("ACC_Exit\n");
     }
 
-    else if ((id.x < -400) && (id.y > 400) && (id.z < 800)) {
+    else if ((id.x > 400) && (id.y > 400) && (id.z < 800)) {
       Button_Status = status_read_button_option;
       OLED__DEBUG_PRINTF("ACC_Option\n");
     }
 
-    else if ((id.x > 400) && (id.y > 400) && (id.z < 800)) {
+    else if ((id.x > 400) && (id.y < -400) && (id.z < 800)) {
       Button_Status = status_read_button_play_pause;
       OLED__DEBUG_PRINTF("ACC_Play\n");
     }
@@ -661,7 +664,11 @@ void OLED_GUI_Sleep_mode() {
   OLED__DEBUG_PRINTF("Exit Sleep Mode\n");
 }
 
-void OLED_update_progress(int percent) { Current_play_progress = percent; }
+void OLED_Get_sent_song_update(uint32_t data_size) {
+  Current_song_sent_size += data_size;
+  // OLED__DEBUG_PRINTF("sent update after add: %u\n", Current_song_sent_size);
+}
+
 void OLED_print_updated_volumn() {
   // print volumn page
   OLED__DEBUG_PRINTF("Updata Vol\n");
@@ -695,12 +702,20 @@ void OLED_GUI_play_status_and_source(bool playing_status) {
   }
 }
 
-void OLED_GUI_Now_prograss_bar(int percent) {
+void OLED_GUI_Now_prograss_bar() {
   /****************************************
    *      percen trange:0-10              *
    *  Use page 6 to print prograss
    * **************************************/
-  percent = percent / 10;
+  int percent = 0;
+  float temp1 = Current_song_sent_size;
+  float temp2 = Current_song_total_size;
+  float res = (temp1 / temp2) * 10;
+  percent = res;
+
+  // OLED_update_progress();
+  OLED__DEBUG_PRINTF("percent: %i0%\n", percent);
+
   switch (percent) {
   case 0:
     OLED_print_string(6, 0, 0, "0%              ", 16);
@@ -748,6 +763,9 @@ void OLED_GUI_Send_New_Song() {
   strcat(final_song_name, ".mp3");
 
   OLED__DEBUG_PRINTF("Get song:%s\n", final_song_name);
+  Current_song_sent_size = 0;
+  Current_song_total_size = list_of_songs[Arrow_index].song_size * 1024;
+  OLED__DEBUG_PRINTF("Update total size from new song: %u\n", Current_song_total_size);
 
   xQueueSend(queue_song_name, final_song_name, portMAX_DELAY);
 }
@@ -1152,7 +1170,7 @@ void OLED_GUI_NowPlay() {
   OLED_print_string(5, 0, 0, "                ", 16);
   OLED_print_string(6, 0, 0, "                ", 16);
 
-  OLED_GUI_Now_prograss_bar(Current_play_progress);
+  OLED_GUI_Now_prograss_bar();
   OLED_GUI_NowPlay_Page(4);
   OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
@@ -1172,7 +1190,6 @@ void OLED_GUI_NowPlay() {
       {
       case status_read_button_back: // back
         OLED_GUI_NowPlay_Page(4);   // default page
-        // OLED_GUI_Now_prograss_bar(final_progress);
         OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
         OLED__DEBUG_PRINTF("back to previous page\n");
         break;
@@ -1186,7 +1203,8 @@ void OLED_GUI_NowPlay() {
 
         OLED_print_updated_volumn();
         OLED_GUI_NowPlay_Page(4);
-        OLED_GUI_Now_prograss_bar(Current_play_progress);
+
+        OLED_GUI_Now_prograss_bar();
         OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         // need to send volumn up command to decoder
@@ -1203,7 +1221,8 @@ void OLED_GUI_NowPlay() {
         OLED_print_string(4, 0, 0, "                ", 16);
         OLED_print_string(5, 0, 0, "                ", 16);
         OLED_print_string(6, 0, 0, "                ", 16);
-        OLED_GUI_Now_prograss_bar(Current_play_progress);
+
+        OLED_GUI_Now_prograss_bar();
         OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         Option_arrow_index = 0; // reset arrow starting point
@@ -1218,8 +1237,8 @@ void OLED_GUI_NowPlay() {
         OLED_GUI_play_left_right(play_previous);
         OLED_GUI_Send_New_Song();
         OLED_GUI_NowPlay_Page(4);
-        Current_play_progress = 0;
-        OLED_GUI_Now_prograss_bar(Current_play_progress);
+
+        OLED_GUI_Now_prograss_bar();
         OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         break;
@@ -1239,12 +1258,14 @@ void OLED_GUI_NowPlay() {
           }
 
           OLED_GUI_NowPlay_Page(4);
-          OLED_GUI_Now_prograss_bar(Current_play_progress);
+
+          OLED_GUI_Now_prograss_bar();
           OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
         } else {
           OLED_GUI_NowPlay_Page(1); // pause
           OLED_GUI_NowPlay_Page(4);
-          OLED_GUI_Now_prograss_bar(Current_play_progress);
+
+          OLED_GUI_Now_prograss_bar();
           OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
           vTaskSuspend(task_handle__player);
@@ -1257,8 +1278,8 @@ void OLED_GUI_NowPlay() {
         OLED_GUI_play_left_right(play_next);
         OLED_GUI_Send_New_Song();
         OLED_GUI_NowPlay_Page(4);
-        Current_play_progress = 0;
-        OLED_GUI_Now_prograss_bar(Current_play_progress);
+
+        OLED_GUI_Now_prograss_bar();
         OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         break;
@@ -1272,7 +1293,8 @@ void OLED_GUI_NowPlay() {
 
         OLED_print_updated_volumn();
         OLED_GUI_NowPlay_Page(4);
-        OLED_GUI_Now_prograss_bar(Current_play_progress);
+
+        OLED_GUI_Now_prograss_bar();
         OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
 
         // need to send volumn down command to decoder
@@ -1287,7 +1309,8 @@ void OLED_GUI_NowPlay() {
             Get_new_song_play = false;
           }
           OLED_GUI_NowPlay_Page(4);
-          OLED_GUI_Now_prograss_bar(Current_play_progress);
+
+          OLED_GUI_Now_prograss_bar();
           OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
         }
 
