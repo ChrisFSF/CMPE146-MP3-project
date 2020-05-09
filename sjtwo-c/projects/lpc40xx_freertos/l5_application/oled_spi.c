@@ -537,41 +537,6 @@ uint8_t OLED_GUI_Read_Button_Status() {
   else if (!read_ACC_CTL_PIN() && ACC_CTL_MODE) {
     Button_Status = acc_interpret_input(Button_Status);
 
-    #if OLED__ENABLE_DEBUGGING
-    switch (Button_Status)
-    {
-    case status_read_button_up:
-      OLED__DEBUG_PRINTF("ACC_Up\n");
-      break;
-    
-    case status_read_button_down:
-      OLED__DEBUG_PRINTF("ACC_Down\n");
-      break;
-
-    case status_read_button_left:
-      OLED__DEBUG_PRINTF("ACC_Left\n");
-      break;
-    
-    case status_read_button_right:
-      OLED__DEBUG_PRINTF("ACC_Right\n");
-      break;
-    
-    case status_read_button_back:
-      OLED__DEBUG_PRINTF("ACC_Exit\n");
-      break;
-    
-    case status_read_button_option:
-      OLED__DEBUG_PRINTF("ACC_Option\n");
-      break;
-
-    case status_read_button_play_pause:
-      OLED__DEBUG_PRINTF("ACC_Play\n");
-      break;
-    default:
-      break;
-    }
-    #endif
-
     // acceleration__axis_data_s id = acceleration__get_data();
 
     // if ((-400 < id.x < 400) && (id.y > 700) && (id.z < 800)) {
