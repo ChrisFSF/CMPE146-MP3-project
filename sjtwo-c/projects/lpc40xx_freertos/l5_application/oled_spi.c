@@ -593,71 +593,48 @@ void OLED_GUI_Sleep_mode() {
         status_read_in_sleep_mode = OLED_GUI_Read_Button_Status();
         switch (i) {
         case 0:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
+          if (status_read_in_sleep_mode == status_read_button_back) { break; }
           OLED_print_string(6, 1, 0, "     *", 6);
           OLED_print_string(7, 1, 0, " ^^^^^^^^^^", 11);
-          OLED_Horizontal_Scroll(0, 0, 7, OLED_Left_Horizontal_Scroll, 0);
           break;
 
         case 1:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
+          if (status_read_in_sleep_mode == status_read_button_back) { break; }
           OLED_print_string(5, 1, 0, "     *", 6);
           OLED_print_string(6, 1, 0, "     |", 6);
-          OLED_Horizontal_Scroll(0, 0, 7, OLED_Left_Horizontal_Scroll, 0);
-
           break;
+
         case 2:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
+          if (status_read_in_sleep_mode == status_read_button_back) { break; }
           OLED_print_string(5, 1, 0, "    (*)", 7);
-          OLED_Horizontal_Scroll(0, 0, 7, OLED_Left_Horizontal_Scroll, 0);
-
           break;
+
         case 3:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
+          if (status_read_in_sleep_mode == status_read_button_back) { break; }
           OLED_print_string(4, 1, 0, "    ^^^", 7);
           OLED_print_string(5, 1, 0, "   <(*)>", 8);
-          OLED_Horizontal_Scroll(0, 0, 7, OLED_Left_Horizontal_Scroll, 0);
-
           break;
 
         case 4:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
+          if (status_read_in_sleep_mode == status_read_button_back) { break; }
           OLED_print_string(3, 1, 0, "     ^", 6);
-          OLED_Horizontal_Scroll(0, 0, 7, OLED_Left_Horizontal_Scroll, 0);
-
           break;
 
         case 5:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
+          if (status_read_in_sleep_mode == status_read_button_back) { break; }
           OLED_print_string(5, 1, 0, "  Supreme", 9);
-          OLED_Horizontal_Scroll(0, 0, 7, OLED_Left_Horizontal_Scroll, 0);
           break;
 
         case 6:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
+          if (status_read_in_sleep_mode == status_read_button_back) { break; }
           OLED_print_string(3, 1, 0, "       ", 7);
           OLED_print_string(4, 1, 0, "        ", 8);
           OLED_print_string(5, 1, 0, "         ", 9);
           OLED_print_string(6, 1, 0, "      ", 6);
           OLED_print_string(7, 1, 0, " ^^^^^^^^^^", 11);
-
-          OLED_Horizontal_Scroll(0, 0, 7, OLED_Left_Horizontal_Scroll, 0);
           break;
         }
+        OLED_Horizontal_Scroll(0, 0, 7, OLED_Left_Horizontal_Scroll, 0);
       }
     }
   }
