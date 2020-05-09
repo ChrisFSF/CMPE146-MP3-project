@@ -1,3 +1,4 @@
+#pragma once
 #include "gpio_lab.h"
 #include <stdbool.h>
 #include <stdint.h>
