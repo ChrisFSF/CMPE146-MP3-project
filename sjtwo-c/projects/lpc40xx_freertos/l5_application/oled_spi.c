@@ -535,43 +535,80 @@ uint8_t OLED_GUI_Read_Button_Status() {
 
   // For ACC CTL
   else if (!read_ACC_CTL_PIN() && ACC_CTL_MODE) {
-    acceleration__axis_data_s id = acceleration__get_data();
+    Button_Status = acc_interpret_input(Button_Status);
 
-    if ((-400 < id.x < 400) && (id.y > 700) && (id.z < 800)) {
-      Button_Status = status_read_button_up;
+    #if OLED__ENABLE_DEBUGGING
+    switch (Button_Status)
+    {
+    case status_read_button_up:
       OLED__DEBUG_PRINTF("ACC_Up\n");
-    }
-
-    else if ((-400 < id.x < 400) && (id.y < -800) && (id.z < 800)) {
-      Button_Status = status_read_button_down;
+      break;
+    
+    case status_read_button_down:
       OLED__DEBUG_PRINTF("ACC_Down\n");
-    }
+      break;
 
-    else if ((id.x < -800) && (-400 < id.y < 400) && (id.z < 800)) {
-      Button_Status = status_read_button_left;
+    case status_read_button_left:
       OLED__DEBUG_PRINTF("ACC_Left\n");
-    }
-
-    else if ((id.x > 800) && (-400 < id.y < 400) && (id.z < 800)) {
-      Button_Status = status_read_button_right;
+      break;
+    
+    case status_read_button_right:
       OLED__DEBUG_PRINTF("ACC_Right\n");
-    }
-
-    else if ((id.x < -400) && (id.y > 400) && (id.z < 800)) {
-      Button_Status = status_read_button_back;
+      break;
+    
+    case status_read_button_back:
       OLED__DEBUG_PRINTF("ACC_Exit\n");
-    }
-
-    else if ((id.x > 400) && (id.y > 400) && (id.z < 800)) {
-      Button_Status = status_read_button_option;
+      break;
+    
+    case status_read_button_option:
       OLED__DEBUG_PRINTF("ACC_Option\n");
-    }
+      break;
 
-    else if ((id.x > 400) && (id.y < -400) && (id.z < 800)) {
-      Button_Status = status_read_button_play_pause;
+    case status_read_button_play_pause:
       OLED__DEBUG_PRINTF("ACC_Play\n");
+      break;
+    default:
+      break;
     }
-    delay__ms(100); // give time for less sentive
+    #endif
+
+    // acceleration__axis_data_s id = acceleration__get_data();
+
+    // if ((-400 < id.x < 400) && (id.y > 700) && (id.z < 800)) {
+    //   Button_Status = status_read_button_up;
+    //   OLED__DEBUG_PRINTF("ACC_Up\n");
+    // }
+
+    // else if ((-400 < id.x < 400) && (id.y < -800) && (id.z < 800)) {
+    //   Button_Status = status_read_button_down;
+    //   OLED__DEBUG_PRINTF("ACC_Down\n");
+    // }
+
+    // else if ((id.x < -800) && (-400 < id.y < 400) && (id.z < 800)) {
+    //   Button_Status = status_read_button_left;
+    //   OLED__DEBUG_PRINTF("ACC_Left\n");
+    // }
+
+    // else if ((id.x > 800) && (-400 < id.y < 400) && (id.z < 800)) {
+    //   Button_Status = status_read_button_right;
+    //   OLED__DEBUG_PRINTF("ACC_Right\n");
+    // }
+
+    // else if ((id.x < -400) && (id.y > 400) && (id.z < 800)) {
+    //   Button_Status = status_read_button_back;
+    //   OLED__DEBUG_PRINTF("ACC_Exit\n");
+    // }
+
+    // else if ((id.x > 400) && (id.y > 400) && (id.z < 800)) {
+    //   Button_Status = status_read_button_option;
+    //   OLED__DEBUG_PRINTF("ACC_Option\n");
+    // }
+
+    // else if ((id.x > 400) && (id.y < -400) && (id.z < 800)) {
+    //   Button_Status = status_read_button_play_pause;
+    //   OLED__DEBUG_PRINTF("ACC_Play\n");
+    // }
+    // delay__ms(100); // give time for less sentive
   }
   delay__ms(50);
   return Button_Status;
