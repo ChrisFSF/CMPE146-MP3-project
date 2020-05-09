@@ -317,27 +317,19 @@ static void song_list_handle_filename(const char *filename, uint32_t file_size) 
   }
 }
 
-void Read_SD_Music_file() {
-  char path[256];
+void Scan_SD_Music_file() {
+  char path[256] = "/music";
   FRESULT res;
   DIR dir;
-  UINT i;
   static FILINFO f_info;
-  char *defalut_dir = "/music";
-  strncpy(path, defalut_dir, sizeof(path) - 1);
+
   res = f_opendir(&dir, path);
   if (res == FR_OK) {
     while (1) {
       res = f_readdir(&dir, &f_info);
       if (res != FR_OK || f_info.fname[0] == 0)
         break;
-      if (f_info.fattrib & AM_DIR) {
-        i = strlen(path);
-        song_list_handle_filename(f_info.fname, f_info.fsize);
-        path[i] = 0;
-      } else {
-        song_list_handle_filename(f_info.fname, f_info.fsize);
-      }
+      song_list_handle_filename(f_info.fname, f_info.fsize);
     }
     f_closedir(&dir);
   }

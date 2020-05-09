@@ -124,6 +124,6 @@ uint8_t OLED_GUI_Read_Button_Status();
 // For Reading the SD card
 // USE FOR SONG NAME
 
-void Read_SD_Music_file();
+void Scan_SD_Music_file();
 uint8_t get_song_list_item_count();
 const char *song_list_get_name_for_item(uint8_t item_number);

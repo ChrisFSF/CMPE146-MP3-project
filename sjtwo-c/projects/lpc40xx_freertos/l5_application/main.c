@@ -237,7 +237,7 @@ int main(void) {
   ssp0__init_lab(24);
   acceleration__init(); // for ACC CTL input
   OLED_init();
-  Read_SD_Music_file();
+  Scan_SD_Music_file();
 
   // for Control Button Setting
   Button_Pressed_Interrupt_Signal = xSemaphoreCreateBinary();
