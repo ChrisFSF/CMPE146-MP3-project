@@ -134,7 +134,7 @@ void song_player_task(void *p) {
       while (byte_sent_counter < sizeof(song_data_block)) {
 
         while (!decoder_needs_data()) {
-          delay__ms(3);
+          delay__ms(2);
         }
         dec_dcs();
         for (uint32_t byte = byte_sent_counter; byte < (byte_sent_counter + spi_send_size); byte++) {

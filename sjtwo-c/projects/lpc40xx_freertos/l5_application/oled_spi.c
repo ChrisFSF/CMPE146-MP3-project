@@ -18,7 +18,7 @@
 #include <math.h>
 
 /// Set to non-zero to enable debugging, and then you can use OLED__DEBUG_PRINTF()
-#define OLED__ENABLE_DEBUGGING 0
+#define OLED__ENABLE_DEBUGGING 1
 
 #if OLED__ENABLE_DEBUGGING
 #include <stdio.h>
@@ -483,7 +483,7 @@ uint8_t OLED_GUI_Read_Button_Status() {
    * read_button_down:       0x40
    *
    * **********************************************************/
-
+  OLED__DEBUG_PRINTF("Read Button status\n");
   Button_Status = 0; // reset status value
 
   if (!read_button_left()) {
@@ -579,63 +579,49 @@ void OLED_GUI_Sleep_mode() {
   OLED_print_string(0, 0, 0, "---Sleep Mode---", 16);
   while (1) {
     status_read_in_sleep_mode = OLED_GUI_Read_Button_Status();
+    OLED__DEBUG_PRINTF("Sleep Mode Read: %u\n", status_read_in_sleep_mode);
+
     if (status_read_in_sleep_mode == status_read_button_back) {
-      // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
+      OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
+      OLED__DEBUG_PRINTF("Exit Sleep Mode\n");
       break;
     } else {
 
       for (int i = 0; i < 7; i++) {
         status_read_in_sleep_mode = OLED_GUI_Read_Button_Status();
+        OLED__DEBUG_PRINTF("Sleep Mode inside: %u\n", status_read_in_sleep_mode);
+        if (status_read_in_sleep_mode == status_read_button_back) {
+          break;
+        }
         switch (i) {
         case 0:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
           OLED_print_string(6, 1, 0, "     *", 6);
           OLED_print_string(7, 1, 0, " ^^^^^^^^^^", 11);
           break;
 
         case 1:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
           OLED_print_string(5, 1, 0, "     *", 6);
           OLED_print_string(6, 1, 0, "     |", 6);
           break;
 
         case 2:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
           OLED_print_string(5, 1, 0, "    (*)", 7);
           break;
 
         case 3:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
           OLED_print_string(4, 1, 0, "    ^^^", 7);
           OLED_print_string(5, 1, 0, "   <(*)>", 8);
           break;
 
         case 4:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
           OLED_print_string(3, 1, 0, "     ^", 6);
           break;
 
         case 5:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
           OLED_print_string(5, 1, 0, "  Supreme", 9);
           break;
 
         case 6:
-          if (status_read_in_sleep_mode == status_read_button_back) {
-            break;
-          }
           OLED_print_string(3, 1, 0, "       ", 7);
           OLED_print_string(4, 1, 0, "        ", 8);
           OLED_print_string(5, 1, 0, "         ", 9);
@@ -1766,6 +1752,7 @@ void OLED_GUI_Move_decision() {
 
     case status_read_button_play_pause: // play/pause
       vTaskSuspend(task_handle__player);
+      OLED__DEBUG_PRINTF("Sleep mode: Suspend song\n");
       OLED_print_string(1, 0, 0, "                ", 16);
       OLED_print_string(2, 0, 0, "                ", 16);
       OLED_print_string(3, 0, 0, "                ", 16);
@@ -1774,7 +1761,9 @@ void OLED_GUI_Move_decision() {
       OLED_print_string(6, 0, 0, "                ", 16);
       OLED_print_string(7, 0, 0, "                ", 16);
       OLED_GUI_Sleep_mode();
+
       vTaskResume(task_handle__player);
+      OLED__DEBUG_PRINTF("Sleep mode: Resume song\n");
 
       // resume the page
       // OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
