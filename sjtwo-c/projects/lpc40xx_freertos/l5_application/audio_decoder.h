@@ -80,9 +80,8 @@ void dec_resume_decoding(void);
 // uint16_t mp3_SCI_read(uint8_t address);
 dec_spi_4bytes_t dec_write_read(uint8_t first_byte, uint8_t second_byte, uint8_t third_byte, uint8_t forth_byte);
 
-
 void dec_set_VOLUME(uint16_t value);
 void dec_set_VOLUME_(int audio_volume);
 void dec_set_VOLUME_LR(int audio_volume_left, int audio_volume_right);
-void dec_set_BASS_TREBLE(int Treble_Amplitude_index, int Treble_Frequency_index, 
-                         int Bass_Amplitude_index, int Bass_Frequency_index);
+void dec_set_BASS_TREBLE(int Treble_Amplitude_index, int Treble_Frequency_index, int Bass_Amplitude_index,
+                         int Bass_Frequency_index);

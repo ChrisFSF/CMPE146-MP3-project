@@ -72,13 +72,13 @@ void OLED_Horizontal_Scroll(uint8_t start_page, uint8_t end_page, uint8_t frame_
 **********************************************************************/
 // button control status
 enum {
-  status_read_button_back,
-  status_read_button_up,
-  status_read_button_option,
-  status_read_button_left,
-  status_read_button_play_pause,
-  status_read_button_right,
-  status_read_button_down,
+  status_read_button_back = 0x01,
+  status_read_button_up = 0x02,
+  status_read_button_option = 0x04,
+  status_read_button_left = 0x08,
+  status_read_button_play_pause = 0x10,
+  status_read_button_right = 0x20,
+  status_read_button_down = 0x40,
 };
 
 // Core Funtion

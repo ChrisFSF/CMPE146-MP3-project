@@ -134,7 +134,7 @@ void song_player_task(void *p) {
       while (byte_sent_counter < sizeof(song_data_block)) {
 
         while (!decoder_needs_data()) {
-          delay__ms(2);
+          delay__ms(3);
         }
         dec_dcs();
         for (uint32_t byte = byte_sent_counter; byte < (byte_sent_counter + spi_send_size); byte++) {
@@ -177,34 +177,29 @@ void acc_task(void *p) {
     printf("  Y = %d", id.y);
     printf("  Z = %d", id.z);
 
-    if ((-400 < id.x < 400) && (id.y > 700) && (id.z < 800)) {
-
-      printf("x: %d, Up\n");
+    if (id.z < 950) { // when tilted more than 30 degree, 1023 * cos(30) = 886
+      if (-350 < id.x && id.x < 350) {
+        if (350 < id.y && id.y < 1050) {
+          printf("ACC_Up\n");
+        } else if (-1050 < id.y && id.y < -350) {
+          printf("ACC_Down\n");
+        }
+      } else if (-350 < id.y && id.y < 350) {
+        if (350 < id.x && id.x < 1050) {
+          printf("ACC_Right\n");
+        } else if (-1050 < id.x && id.x < -350) {
+          printf("ACC_Left\n");
+        }
+      } else if (350 < id.y && id.y < 1050) {
+        if (350 < id.x && id.x < 1050) {
+          printf("ACC_Option\n");
+        } else if (-1050 < id.x && id.x < -350) {
+          printf("ACC_Exit\n");
+        }
+      } else if (350 < id.x && id.x < 1050 && -1050 < id.y && id.y < -350) {
+        printf("ACC_Play\n");
+      }
     }
-
-    if ((-400 < id.x < 400) && (id.y < -800) && (id.z < 800)) {
-      printf("Down\n");
-    }
-
-    if ((id.x < -800) && (-400 < id.y < 400) && (id.z < 800)) {
-      printf("Left\n");
-    }
-    if ((id.x > 800) && (-400 < id.y < 400) && (id.z < 800)) {
-      printf("Right\n");
-    }
-
-    if ((id.x < -400) && (id.y > 400) && (id.z < 800)) {
-      printf("Exit\n");
-    }
-
-    if ((id.x > 400) && (id.y > 400) && (id.z < 800)) {
-      printf("Option\n");
-    }
-
-    if ((id.x > 400) && (id.y < -400) && (id.z < 800)) {
-      printf("Play\n");
-    }
-
     vTaskDelay(100);
   }
 }

@@ -11,13 +11,14 @@
 #include <string.h>
 // #include <stddef.h>
 #include "FreeRTOS.h"
+#include "accel_control.h"
 #include "acceleration.h"
 #include "audio_decoder.h"
 #include "queue.h"
 #include <math.h>
 
 /// Set to non-zero to enable debugging, and then you can use OLED__DEBUG_PRINTF()
-#define OLED__ENABLE_DEBUGGING 1
+#define OLED__ENABLE_DEBUGGING 0
 
 #if OLED__ENABLE_DEBUGGING
 #include <stdio.h>
@@ -54,11 +55,11 @@ static bool play_first_song = false;
 // for playing options page
 static bool Bass_status = false;
 static bool Treble_status = false;
-static int Option_arrow_index = 1;
-static int Treble_Amplitude_index = 8;
-static int Treble_Frequency_index = 2;
-static int Bass_Amplitude_index = 2;
-static int Bass_Frequency_index = 2;
+static volatile int Option_arrow_index = 1;
+static volatile int Treble_Amplitude_index = 8;
+static volatile int Treble_Frequency_index = 2;
+static volatile int Bass_Amplitude_index = 2;
+static volatile int Bass_Frequency_index = 2;
 
 static char Treble_F[16] = "TF+------------ ";
 static char Treble_A[16] = "TA------+------ ";
@@ -587,40 +588,54 @@ void OLED_GUI_Sleep_mode() {
         status_read_in_sleep_mode = OLED_GUI_Read_Button_Status();
         switch (i) {
         case 0:
-          if (status_read_in_sleep_mode == status_read_button_back) { break; }
+          if (status_read_in_sleep_mode == status_read_button_back) {
+            break;
+          }
           OLED_print_string(6, 1, 0, "     *", 6);
           OLED_print_string(7, 1, 0, " ^^^^^^^^^^", 11);
           break;
 
         case 1:
-          if (status_read_in_sleep_mode == status_read_button_back) { break; }
+          if (status_read_in_sleep_mode == status_read_button_back) {
+            break;
+          }
           OLED_print_string(5, 1, 0, "     *", 6);
           OLED_print_string(6, 1, 0, "     |", 6);
           break;
 
         case 2:
-          if (status_read_in_sleep_mode == status_read_button_back) { break; }
+          if (status_read_in_sleep_mode == status_read_button_back) {
+            break;
+          }
           OLED_print_string(5, 1, 0, "    (*)", 7);
           break;
 
         case 3:
-          if (status_read_in_sleep_mode == status_read_button_back) { break; }
+          if (status_read_in_sleep_mode == status_read_button_back) {
+            break;
+          }
           OLED_print_string(4, 1, 0, "    ^^^", 7);
           OLED_print_string(5, 1, 0, "   <(*)>", 8);
           break;
 
         case 4:
-          if (status_read_in_sleep_mode == status_read_button_back) { break; }
+          if (status_read_in_sleep_mode == status_read_button_back) {
+            break;
+          }
           OLED_print_string(3, 1, 0, "     ^", 6);
           break;
 
         case 5:
-          if (status_read_in_sleep_mode == status_read_button_back) { break; }
+          if (status_read_in_sleep_mode == status_read_button_back) {
+            break;
+          }
           OLED_print_string(5, 1, 0, "  Supreme", 9);
           break;
 
         case 6:
-          if (status_read_in_sleep_mode == status_read_button_back) { break; }
+          if (status_read_in_sleep_mode == status_read_button_back) {
+            break;
+          }
           OLED_print_string(3, 1, 0, "       ", 7);
           OLED_print_string(4, 1, 0, "        ", 8);
           OLED_print_string(5, 1, 0, "         ", 9);
@@ -841,9 +856,12 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
   // Option_arrow_index : 0 - 3
   // Print Layout
   // OLED_print_string(0, 0, 0, " Playing Options", 16);
+  OLED__DEBUG_PRINTF("Enter Option check arrow_index = %i\n", Option_arrow_index);
   if (Option_arrow_index == 0) {
     Option_arrow_index = 1;
   }
+  OLED__DEBUG_PRINTF("Before: TF: %i, TA: %i, BF: %i, BA: %i\n", Treble_Frequency_index, Treble_Amplitude_index,
+                     Bass_Frequency_index, Bass_Amplitude_index);
   int previous_index = Option_arrow_index;
   if (up_down == 1) { // go down
     Option_arrow_index++;
@@ -1002,7 +1020,8 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
   }
   dec_set_BASS_TREBLE(Treble_Amplitude_index, Treble_Frequency_index, Bass_Amplitude_index, Bass_Frequency_index);
   OLED__DEBUG_PRINTF("Update Treble/Bass\n");
-
+  OLED__DEBUG_PRINTF("After: TF: %i, TA: %i, BF: %i, BA: %i\n", Treble_Frequency_index, Treble_Amplitude_index,
+                     Bass_Frequency_index, Bass_Amplitude_index);
   OLED_print_string(1, 0, 0, Treble_F, 16);
   OLED_print_string(2, 0, 0, Treble_A, 16);
   OLED_print_string(3, 0, 0, Bass_F, 16);
@@ -1112,19 +1131,28 @@ void OLED_GUI_NowPlay_Option() {
         break;
       }
     }
+    // clear * for next time enter, because every time enter, the * start from 1
+    switch (Option_arrow_index) {
+    case 1:
+      Treble_F[15] = ' ';
+      break;
+
+    case 2:
+      Treble_A[15] = ' ';
+      break;
+
+    case 3:
+      Bass_F[15] = ' ';
+      break;
+
+    case 4:
+      Bass_A[15] = ' ';
+      break;
+    default:
+      break;
+    }
     delay__ms(50); // give time to send the mp3 data if needed
   }
-
-  Option_arrow_index = 1;
-  Treble_Amplitude_index = 8;
-  Treble_Frequency_index = 2;
-  Bass_Amplitude_index = 2;
-  Bass_Frequency_index = 2;
-
-  strcpy(Treble_F, "TF+------------ ");
-  strcpy(Treble_A, "TA------+------ ");
-  strcpy(Bass_F, "BF+------------ ");
-  strcpy(Bass_A, "BA+------------ ");
 
   OLED__DEBUG_PRINTF("Exit Option Page\n");
   // OLED_print_string(1, 0, 0, "                ", 16); // clear the line 1
@@ -1642,7 +1670,6 @@ void OLED_GUI_Move_decision() {
       OLED_GUI_Folder(); // go to floder page logic
 
       if (Get_new_song_play == true) {
-        // OLED_GUI_Send_New_Song();
         OLED_GUI_Play_Status = true;
         OLED_GUI_NowPlay(); // enter now playing page
       }

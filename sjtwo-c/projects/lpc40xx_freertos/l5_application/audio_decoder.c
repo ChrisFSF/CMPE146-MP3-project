@@ -1,9 +1,9 @@
 #include <stdio.h>
 
-#include "lpc40xx.h"
 #include "FreeRTOS.h"
-#include "semphr.h"
 #include "delay.h"
+#include "lpc40xx.h"
+#include "semphr.h"
 
 #include "audio_decoder.h"
 #include "ssp1.h"
@@ -38,7 +38,7 @@ void dec_write_command(uint8_t address, uint16_t data) {
   ssp1__exchange_byte_lab(dataUpper);
   ssp1__exchange_byte_lab(dataLower);
   while (!dec_getlevel_dreq())
-    ;       
+    ;
   dec_ds();
 }
 
