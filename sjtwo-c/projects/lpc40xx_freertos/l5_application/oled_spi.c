@@ -1,23 +1,21 @@
 #include "oled_spi.h"
-
+#include "Control_Button.h"
+#include "delay.h"
+#include "ff.h"
+#include "font8x8_basic.h"
+// #include "ssp2_lab.h"
+#include "ssp0.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 // #include <stddef.h>
-
 #include "FreeRTOS.h"
-#include "queue.h"
-#include "ff.h"
-#include "delay.h"
-
-#include "Control_Button.h"
-#include "font8x8_basic.h"
-#include "ssp0.h"
-// #include "ssp2_lab.h"
-#include "audio_decoder.h"
 #include "accel_control.h"
+#include "acceleration.h"
+#include "audio_decoder.h"
+#include "queue.h"
+#include <math.h>
 
 /// Set to non-zero to enable debugging, and then you can use OLED__DEBUG_PRINTF()
 #define OLED__ENABLE_DEBUGGING 0
@@ -531,8 +529,45 @@ uint8_t OLED_GUI_Read_Button_Status() {
   // For ACC CTL
   else if (!read_ACC_CTL_PIN() && ACC_CTL_MODE) {
     Button_Status = acc_interpret_input(Button_Status);
+
+    // acceleration__axis_data_s id = acceleration__get_data();
+
+    // if ((-400 < id.x < 400) && (id.y > 700) && (id.z < 800)) {
+    //   Button_Status = status_read_button_up;
+    //   OLED__DEBUG_PRINTF("ACC_Up\n");
+    // }
+
+    // else if ((-400 < id.x < 400) && (id.y < -800) && (id.z < 800)) {
+    //   Button_Status = status_read_button_down;
+    //   OLED__DEBUG_PRINTF("ACC_Down\n");
+    // }
+
+    // else if ((id.x < -800) && (-400 < id.y < 400) && (id.z < 800)) {
+    //   Button_Status = status_read_button_left;
+    //   OLED__DEBUG_PRINTF("ACC_Left\n");
+    // }
+
+    // else if ((id.x > 800) && (-400 < id.y < 400) && (id.z < 800)) {
+    //   Button_Status = status_read_button_right;
+    //   OLED__DEBUG_PRINTF("ACC_Right\n");
+    // }
+
+    // else if ((id.x < -400) && (id.y > 400) && (id.z < 800)) {
+    //   Button_Status = status_read_button_back;
+    //   OLED__DEBUG_PRINTF("ACC_Exit\n");
+    // }
+
+    // else if ((id.x > 400) && (id.y > 400) && (id.z < 800)) {
+    //   Button_Status = status_read_button_option;
+    //   OLED__DEBUG_PRINTF("ACC_Option\n");
+    // }
+
+    // else if ((id.x > 400) && (id.y < -400) && (id.z < 800)) {
+    //   Button_Status = status_read_button_play_pause;
+    //   OLED__DEBUG_PRINTF("ACC_Play\n");
+    // }
+    // delay__ms(100); // give time for less sentive
   }
-  
   delay__ms(50);
   return Button_Status;
 }
