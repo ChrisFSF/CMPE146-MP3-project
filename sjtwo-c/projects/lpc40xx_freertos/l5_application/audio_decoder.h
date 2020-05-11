@@ -48,14 +48,14 @@ typedef struct {
 #define SCI_MODE_INIT 0x0800
 #define SCI_CLOCKF_INIT 0xC000
 #define SCI_VOL_INIT 0x3232
-#define SCI_BASS_INIT 0x0076
+#define SCI_BASS_INIT 0x0000
 #define SCI_AUDATA_INIT 0xAC45
-// #define SCI_STATUS_INIT 0xAC45;
+// #define SCI_STATUS_INIT
 
-// static const uint16_t MODE = 0x4810;
-// static const uint16_t CLOCKF = 0xE000;
-// static volatile uint16_t VOL = 0x2222;
-// static uint16_t BASS = 0x0076;
+// static const uint16_t MODE = 0x0800;
+// static const uint16_t CLOCKF = 0xC000;
+// static volatile uint16_t VOL = 0x3232;
+// static uint16_t BASS = 0x0000;
 // static uint16_t AUDATA = 0xAC45; // 0xAC45 for stereo decoding
 // static uint16_t STATUS;
 // extern SemaphoreHandle_t xSemaphore_mutex_spi;
