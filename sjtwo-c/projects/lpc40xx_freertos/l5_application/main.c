@@ -229,12 +229,7 @@ int main(void) {
 #endif
 
 #if OLED_TEST // oled
-  ssp0__init_lab(24);
-  acceleration__init(); // for ACC CTL input
-  OLED_init();
-  Scan_SD_Music_file();
-
-  // for Control Button Setting
+              // for Control Button Setting
   Button_Pressed_Interrupt_Signal = xSemaphoreCreateBinary();
   Give_time_for_OLED_print = xSemaphoreCreateBinary();
 
@@ -249,6 +244,12 @@ int main(void) {
 
   NVIC_EnableIRQ(GPIO_IRQn);
   lpc_peripheral__enable_interrupt(GPIO_IRQn, gpiox__interrupt_dispatcher, "Control Button Interrupt Check");
+
+  // for Oled setting
+  ssp0__init_lab(24);
+  acceleration__init(); // for ACC CTL input
+  OLED_init();
+  Scan_SD_Music_file();
 
   xTaskCreate(oled_print, "oled_task", (512U * 8) / sizeof(void *), NULL, 2, NULL);
 #endif

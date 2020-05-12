@@ -1220,6 +1220,8 @@ void OLED_GUI_NowPlay() {
         OLED_GUI_NowPlay_Page(2);   // previous
         OLED_GUI_play_left_right(play_previous);
         OLED_GUI_Send_New_Song();
+        dec_stop_decoding_current_file();
+
         OLED_GUI_NowPlay_Page(4);
 
         OLED_GUI_Now_prograss_bar();
@@ -1260,6 +1262,8 @@ void OLED_GUI_NowPlay() {
       case status_read_button_right: // right
         OLED_GUI_NowPlay_Page(3);    // to top right
         OLED_GUI_play_left_right(play_next);
+        dec_stop_decoding_current_file();
+
         OLED_GUI_Send_New_Song();
         OLED_GUI_NowPlay_Page(4);
 
@@ -1288,6 +1292,7 @@ void OLED_GUI_NowPlay() {
         if (counter == 0) {
           counter++;
           if (Get_new_song_play) {
+            dec_stop_decoding_current_file();
             OLED_GUI_Send_New_Song();
             OLED_GUI_Play_Status = true;
             Get_new_song_play = false;

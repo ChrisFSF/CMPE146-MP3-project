@@ -75,7 +75,7 @@ void dec_init_command();
 void dec_rst(void);
 
 void dec_dreq_set_as_input(void);
-void dec_stop_decoding(void);
+void dec_stop_decoding_current_file(void);
 void dec_resume_decoding(void);
 // uint16_t mp3_SCI_read(uint8_t address);
 dec_spi_4bytes_t dec_write_read(uint8_t first_byte, uint8_t second_byte, uint8_t third_byte, uint8_t forth_byte);

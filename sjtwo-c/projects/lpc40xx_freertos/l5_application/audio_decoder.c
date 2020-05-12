@@ -42,7 +42,7 @@ void dec_write_command(uint8_t address, uint16_t data) {
   dec_ds();
 }
 
-void dec_stop_decoding() { dec_write_command(SCI_MODE, 0x0808); }
+void dec_stop_decoding_current_file() { dec_write_command(SCI_MODE, 0x0808); }
 
 void dec_resume_decoding() { dec_write_command(SCI_MODE, 0x0800); }
 
