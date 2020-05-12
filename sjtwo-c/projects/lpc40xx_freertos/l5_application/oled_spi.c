@@ -88,7 +88,7 @@ typedef struct {
 
 } song_info;
 
-static song_info list_of_songs[32]; // list of song
+static song_info list_of_songs[64]; // list of song
 static uint8_t number_of_songs = 0; // only support 255 songs
 
 void OLED_CS() {
@@ -483,7 +483,6 @@ uint8_t OLED_GUI_Read_Button_Status() {
    * read_button_down:       0x40
    *
    * **********************************************************/
-  OLED__DEBUG_PRINTF("Read Button status\n");
   Button_Status = 0; // reset status value
 
   if (!read_button_left()) {
@@ -1367,7 +1366,11 @@ void OLED_GUI_Folder_Page(uint8_t inc_dec) {
         if (curr_page < 0) {
           curr_page = total_pages; // go to the last page
           Arrow_index = number_of_songs - 1;
-          Current_Arrow_index = 5;
+
+          Current_Arrow_index = curr_page * 5 + 5;
+          if (Current_Arrow_index > number_of_songs) {
+            Current_Arrow_index = number_of_songs % 5;
+          }
         }
       }
     }
@@ -1379,14 +1382,13 @@ void OLED_GUI_Folder_Page(uint8_t inc_dec) {
   determine_num_of_song_in_this_page = curr_page * 5 + 5;
   if (determine_num_of_song_in_this_page > number_of_songs) {
     determine_num_of_song_in_this_page = number_of_songs % 5;
-  }
-  OLED__DEBUG_PRINTF("page: %i, index_arr: %i, curr_arrow: %i\n", total_pages, Arrow_index, Current_Arrow_index);
+  } else
+    determine_num_of_song_in_this_page = 5;
 
   OLED_print_string(1, 0, 0, "^               ", 16);
   if (determine_num_of_song_in_this_page == 5) {
     for (int i = 2 + curr_page * 5; i < 2 + curr_page * 5 + determine_num_of_song_in_this_page; i++) {
       strncpy(temp_name, list_of_songs[i - 2].song_name, 16); // get song name
-
       if ((i - 1 - curr_page * 5) == Current_Arrow_index) {
         int j = 0;                      // for copying the arrow
         for (int k = 13; k < 16; k++) { // copying the arrow to the end of the song name
@@ -1399,10 +1401,10 @@ void OLED_GUI_Folder_Page(uint8_t inc_dec) {
       }
     }
   } else { // less than 5 songs in a page
-    uint8_t oled_page_counter = 1;
+    uint8_t get_clear_song_counter = 1;
     for (int i = 2 + curr_page * 5; i < 2 + curr_page * 5 + determine_num_of_song_in_this_page; i++) {
       strncpy(temp_name, list_of_songs[i - 2].song_name, 16); // get song name
-      oled_page_counter++;
+      get_clear_song_counter++;
       if ((i - 1 - curr_page * 5) == Current_Arrow_index) {
         int j = 0;                      // for copying the arrow
         for (int k = 13; k < 16; k++) { // copying the arrow to the end of the song name
@@ -1415,7 +1417,7 @@ void OLED_GUI_Folder_Page(uint8_t inc_dec) {
       }
     }
 
-    for (int i = oled_page_counter + 1; i < 7; i++) {
+    for (int i = get_clear_song_counter + 1; i < 7; i++) {
       OLED_print_string(i, 0, 0, "                ", 16);
     }
   }
