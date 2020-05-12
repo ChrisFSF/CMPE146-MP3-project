@@ -1658,6 +1658,9 @@ void OLED_GUI_Move_decision() {
       OLED_GUI_Folder(); // go to floder page logic
 
       if (Get_new_song_play == true) {
+        if (OLED_GUI_Play_Status == false) {
+          vTaskResume(task_handle__player);
+        }
         OLED_GUI_Play_Status = true;
         OLED_GUI_NowPlay(); // enter now playing page
       }
