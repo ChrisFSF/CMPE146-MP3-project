@@ -103,7 +103,7 @@ void song_reader_task(void *p) {
 
           if (xSemaphoreTake(Give_time_for_OLED_print, 1)) {
             // delay__us(800);
-            delay__ms(5);
+            delay__ms(3);
           }
 
           if (uxQueueMessagesWaiting(queue_song_name)) {

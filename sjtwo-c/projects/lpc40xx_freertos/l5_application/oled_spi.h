@@ -97,25 +97,27 @@ void OLED_Get_sent_song_update(uint32_t data_size);
 
 void OLED_print_updated_volumn();
 void OLED_GUI_play_left_right(bool left_right);
-bool Get_OLED_GUI_Play_Status();
 void Flip_Play_status();
 
 // option page for now playing
 void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right);
 void OLED_GUI_NowPlay_Option();
+bool Get_OLED_GUI_Play_Status();
 void OLED_GUI_Send_New_Song();
 
 // Folder page
 void OLED_GUI_Folder_Page(uint8_t inc_dec);
 void OLED_GUI_Folder();
 
+// For play stutus from button or acc
+uint8_t OLED_GUI_Read_Button_Status();
+
 // ACC ctl page
 void OLED_ACC_CTL_Page(bool turn_on_off);
 void OLED_ACC_CTL_MODE();
 
-// Accelerator control mode
+// sleep mode
 void OLED_GUI_Sleep_mode();
-uint8_t OLED_GUI_Read_Button_Status();
 
 /***********************************************************************************
  *                      SD card file scanning                                      *
