@@ -347,11 +347,11 @@ void Scan_SD_Music_file() {
 
 void OLED_GUI_Home_Page(uint8_t position, bool playing_status) {
   /**********************************
-   *         __   __
-   *       | 00 | 01 |
-   *         __   __
-   *       | 10 | 11 |
-   *         --   --
+   *         __          __
+   *       | RecPlay | Folder |
+   *         __      __
+   *       | ACC_M   |  Sleep |
+   *
    ********************************/
   OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
   // OLED_print_string(1, 0, 0, "Limited  Edition", 16);
@@ -397,7 +397,7 @@ void OLED_GUI_Home_Page(uint8_t position, bool playing_status) {
     OLED_print_string(7, 0, 0, "Playing Now     ", 16);
     OLED_Horizontal_Scroll(7, 7, 7, OLED_Left_Horizontal_Scroll, 1);
   } else {
-    OLED_print_string(7, 0, 0, "No Song to Play!", 16);
+    OLED_print_string(7, 0, 0, "Not Playing!    ", 16);
   }
   // OLED_Horizontal_Scroll(0, 0, 7, OLED_Left_Horizontal_Scroll, 1);
   delay__ms(50); // set sensitive level
@@ -669,7 +669,7 @@ void OLED_GUI_play_status_and_source(bool playing_status) {
   } else {
     OLED_Send_Command(OLED_Deactivate_Scroll);
     OLED__DEBUG_PRINTF("DeActive scroll\n");
-    OLED_print_string(7, 0, 0, "No Song to Play!", 16);
+    OLED_print_string(7, 0, 0, "Not Playing!    ", 16);
   }
 }
 
@@ -744,8 +744,8 @@ void OLED_GUI_Send_New_Song() {
 void OLED_GUI_NowPlay_Page(uint8_t position) {
   /**********************************
    * 0    --Now  Playing--
-   * 1
-   * 2      Music Name
+   * 1   Music Name
+   * 2
    * 3  Previous  Play/Pause   Next
    * 4  |<<     ~>/||       >>|
    * 5  Vol:---               3
