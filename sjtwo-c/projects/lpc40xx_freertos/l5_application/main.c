@@ -103,7 +103,7 @@ void song_reader_task(void *p) {
 
           if (xSemaphoreTake(Give_time_for_OLED_print, 1)) {
             // delay__us(800);
-            delay__ms(3);
+            delay__ms(1);
           }
 
           if (uxQueueMessagesWaiting(queue_song_name)) {
@@ -112,6 +112,11 @@ void song_reader_task(void *p) {
           }
         }
         f_close(&file);
+        // INC_Current_song_play_index();
+        // // Play_next_song();
+        // xSemaphoreGive(Button_Pressed_Interrupt_Signal);
+        // OLED_GUI_Send_New_Song();
+
       } else {
         printf("ERROR: failed to open %s\n", song_name);
       }
@@ -206,6 +211,7 @@ void acc_task(void *p) {
 #endif
 
 // RTOS trace: Failed to write page
+
 int main(void) {
 
 #if ACC_CTL_TEST

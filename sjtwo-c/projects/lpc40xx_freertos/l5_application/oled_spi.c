@@ -43,7 +43,7 @@ static uint8_t Button_Status = 0;
 static uint8_t OLED_GUI_Next_Pos = 0;
 static bool OLED_GUI_Play_Status = false;
 static bool ACC_CTL_MODE = false;
-
+static enum PAGE_stage Current_page = GUI_Home_page;
 static char Current_play_song_name[16];
 static uint32_t Current_song_total_size = 1;
 static uint32_t Current_song_sent_size = 0;
@@ -52,6 +52,7 @@ static uint8_t Arrow_index = 0;         // this is index of song list
 static uint8_t Current_Arrow_index = 1; // this is the index correspronse to each page's arrow
 static bool Get_new_song_play = false;
 static bool play_first_song = false;
+
 // for playing options page
 static bool Bass_status = false;
 static bool Treble_status = false;
@@ -353,6 +354,7 @@ void OLED_GUI_Home_Page(uint8_t position, bool playing_status) {
    *       | ACC_M   |  Sleep |
    *
    ********************************/
+  Current_page = GUI_Home_page;
   OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
   // OLED_print_string(1, 0, 0, "Limited  Edition", 16);
   // Print Layout
@@ -462,6 +464,7 @@ void OLED_init() {
   Treble_Frequency_index = 2;
   Bass_Amplitude_index = 2;
   Bass_Frequency_index = 2;
+  Current_page = GUI_Home_page;
 
   task_handle__player = xTaskGetHandle("song_player");
   OLED_print_string(0, 0, 0, "--Suny Walkman--", 16);
@@ -534,7 +537,7 @@ uint8_t OLED_GUI_Read_Button_Status() {
 }
 
 void OLED_GUI_Sleep_mode() {
-
+  Current_page = GUI_Sleep_mode_page;
   uint8_t status_read_in_sleep_mode = 0x00;
   OLED__DEBUG_PRINTF("Enter Sleep Mode\n");
   OLED_print_string(0, 0, 0, "---Sleep Mode---", 16);
@@ -702,6 +705,12 @@ void OLED_GUI_Send_New_Song() {
   OLED__DEBUG_PRINTF("Update total size from new song: %u\n", Current_song_total_size);
 
   xQueueSend(queue_song_name, final_song_name, portMAX_DELAY);
+
+  // if (Current_page == GUI_Now_playing_page) {
+  //   OLED_GUI_NowPlay_Page(4);
+  //   OLED_GUI_Now_prograss_bar();
+  //   OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
+  // }
 }
 
 void OLED_GUI_NowPlay_Page(uint8_t position) {
@@ -1005,7 +1014,7 @@ void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right) {
 }
 
 void OLED_GUI_NowPlay_Option() {
-
+  Current_page = GUI_Option_page;
   uint8_t status_read_in_Option = 0x00;
   OLED_print_string(0, 0, 0, " Playing Options", 16);
   OLED_print_string(1, 0, 0, "                ", 16);
@@ -1108,6 +1117,7 @@ void OLED_GUI_NowPlay_Option() {
 
 void OLED_GUI_NowPlay() {
   uint8_t status_read_in_RecPlay = 0x00;
+  Current_page = GUI_Now_playing_page;
   int counter = 0;
   OLED_print_string(0, 0, 0, "--Now  Playing--", 16);
   OLED_print_string(1, 0, 0, "                ", 16);
@@ -1396,6 +1406,8 @@ void OLED_GUI_Folder_Page(uint8_t inc_dec) {
 
 void OLED_GUI_Folder() {
   uint8_t status_read_in_Folder = 0x00;
+  Current_page = GUI_Folder_page;
+
   OLED_print_string(0, 0, 0, " ----Folder---- ", 16);
   OLED_print_string(1, 0, 0, "                ", 16);
   OLED_print_string(2, 0, 0, "                ", 16);
@@ -1505,15 +1517,15 @@ void OLED_ACC_CTL_Page(bool turn_on_off) {
   }
 }
 void OLED_ACC_CTL_MODE() {
-
   uint8_t status_read_in_ACC = 0x00;
+  Current_page = GUI_Acc_mode_page;
   OLED_print_string(0, 0, 0, "----ACC  CTL----", 16);
   OLED_print_string(1, 0, 0, "                ", 16);
   OLED_print_string(3, 0, 0, "                ", 16);
   OLED_print_string(4, 0, 0, "                ", 16);
   OLED_print_string(6, 0, 0, "                ", 16);
   OLED_print_string(7, 0, 0, "                ", 16);
-  OLED_ACC_CTL_Page(false);
+  OLED_ACC_CTL_Page(ACC_CTL_MODE);
 
   OLED__DEBUG_PRINTF("Enter ACC MODE\n");
   delay__ms(100); // give delay for input to avoid Accidental touch
@@ -1542,6 +1554,18 @@ void OLED_ACC_CTL_MODE() {
 
 bool Get_OLED_GUI_Play_Status() { return OLED_GUI_Play_Status; }
 void Flip_Play_status() { OLED_GUI_Play_Status = !OLED_GUI_Play_Status; }
+void INC_Current_song_play_index() { Arrow_index++; }
+void Play_next_song() {
+  OLED_GUI_NowPlay_Page(3);       // to top right
+  OLED_GUI_play_left_right(true); // play next
+  dec_stop_decoding_current_file();
+
+  OLED_GUI_Send_New_Song();
+  OLED_GUI_NowPlay_Page(4);
+
+  OLED_GUI_Now_prograss_bar();
+  OLED_GUI_play_status_and_source(OLED_GUI_Play_Status);
+};
 
 void OLED_GUI_Move_decision() {
   uint8_t button_next_move = OLED_GUI_Read_Button_Status();

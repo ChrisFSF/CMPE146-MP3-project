@@ -81,13 +81,21 @@ enum {
   status_read_button_down = 0x40,
 };
 
+enum PAGE_stage {
+  GUI_Home_page,
+  GUI_Now_playing_page,
+  GUI_Option_page,
+  GUI_Folder_page,
+  GUI_Acc_mode_page,
+  GUI_Sleep_mode_page,
+};
 // Core Funtion
 void OLED_GUI_Move_decision();
 
 // Pages
 void OLED_GUI_Home_Page(uint8_t position, bool playing_status);
 
-// Recent play page
+// Now playing page
 void OLED_GUI_NowPlay_Page(uint8_t position);
 void OLED_GUI_NowPlay();
 void OLED_GUI_play_status_and_source(bool playing_status);
@@ -99,11 +107,14 @@ void OLED_print_updated_volumn();
 void OLED_GUI_play_left_right(bool left_right);
 void Flip_Play_status();
 
+void OLED_GUI_Send_New_Song();
+void INC_Current_song_play_index();
+void Play_next_song();
+
 // option page for now playing
 void OLED_GUI_NowPlay_Option_Page(uint8_t up_down, uint8_t Left_Right);
 void OLED_GUI_NowPlay_Option();
 bool Get_OLED_GUI_Play_Status();
-void OLED_GUI_Send_New_Song();
 
 // Folder page
 void OLED_GUI_Folder_Page(uint8_t inc_dec);
