@@ -28,7 +28,7 @@ GUI
 - Gesture Mode 
 
 Usage:
-The protocal we use can be replaced by other board, plz look at our GPIO definition and decleration.
+The signals from the SJ2-board can be replaced by other board, please look at our GPIO definition and decleration.
 You can use you own board to output SPI, I2C, UART, or other protocals we used to make you own MP3 upon
 our design.
 
