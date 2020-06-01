@@ -41,3 +41,13 @@ Parts List & Price:
 - Prototype PCB board  - $2
 - Other material  - $2
 - Total : $110
+
+Images of the box design:
+--------------------------------------Overview------------------------------------------------------
+![alt text](https://github.com/ChrisFSF/CMPE146-MP3-project/blob/master/MP3_box_design/BOX%20top%20view.png)
+
+--------------------------------------SD Card-------------------------------------------------------
+![alt text](https://github.com/ChrisFSF/CMPE146-MP3-project/blob/master/MP3_box_design/sd%20card%20view.png)
+
+--------------------------------------Button View---------------------------------------------------
+![alt text](https://github.com/ChrisFSF/CMPE146-MP3-project/blob/master/MP3_box_design/button%20view.png)
