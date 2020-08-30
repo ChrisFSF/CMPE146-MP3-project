@@ -18,7 +18,7 @@
 #include <math.h>
 
 /// Set to non-zero to enable debugging, and then you can use OLED__DEBUG_PRINTF()
-#define OLED__ENABLE_DEBUGGING 1
+#define OLED__ENABLE_DEBUGGING 0
 
 #if OLED__ENABLE_DEBUGGING
 #include <stdio.h>
